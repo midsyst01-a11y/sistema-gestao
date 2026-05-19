@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurações - Gestão de Sistema Digital</title>
+
+  <style>
+    :root {
+      --orange: #ff6b00;
+      --orange-2: #ff8a1f;
+      --dark: #05080c;
+      --panel: rgba(8, 13, 19, 0.88);
+      --panel-2: rgba(12, 19, 27, 0.82);
+      --line: rgba(255, 255, 255, 0.14);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --muted-2: #94a3b8;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 80% 18%, rgba(255, 107, 0, 0.22), transparent 30%),
+        radial-gradient(circle at 12% 8%, rgba(255, 107, 0, 0.08), transparent 28%),
+        linear-gradient(90deg, #030609 0%, #071019 42%, #130b05 100%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.50) 45%, rgba(0,0,0,.25) 100%),
+        repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 1px, transparent 1px 44px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      padding: 28px 14px 18px;
+      border-right: 1px solid var(--line);
+      background: rgba(2, 6, 10, 0.76);
+      backdrop-filter: blur(18px);
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 18px;
+    }
+
+    .brand-preview-side {
+      padding: 6px 24px 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .logo-area-side {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .logo-img-side {
+      width: 58px;
+      height: 58px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,107,0,.45);
+      object-fit: contain;
+      background: rgba(255,255,255,.04);
+      padding: 5px;
+      display: none;
+      flex: 0 0 auto;
+    }
+
+    .logo-text-side {
+      font-size: 30px;
+      line-height: .92;
+      font-weight: 950;
+      letter-spacing: -1.2px;
+      text-transform: uppercase;
+      color: #ffffff;
+      min-width: 0;
+      max-width: 100%;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+
+    .logo-area-side.com-logo .logo-text-side {
+      font-size: clamp(18px, 1.9vw, 25px);
+      letter-spacing: -0.6px;
+      line-height: .98;
+    }
+
+    .logo-text-side span { color: var(--orange); }
+
+    .brand-subtitle-side {
+      font-size: 13px;
+      color: #ffffff;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+
+    .brand-cnpj-side {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .2px;
+    }
+
+    .nav-link {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, rgba(255, 107, 0, 0.98), rgba(255, 107, 0, 0.44));
+      border: 1px solid rgba(255, 107, 0, .45);
+      box-shadow: inset 4px 0 0 var(--orange), 0 14px 28px rgba(255, 107, 0, 0.16);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .side-note {
+      padding: 0 20px;
+      color: #aab4c2;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .side-footer {
+      padding: 0 12px;
+      color: #cbd5e1;
+      font-size: 10px;
+      line-height: 1.3;
+      font-weight: 400;
+    }
+
+    .side-footer strong {
+      color: var(--orange);
+      font-weight: 500;
+    }
+
+    .content {
+      padding: 24px 34px;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .top-title small {
+      display: block;
+      color: var(--orange-2);
+      font-size: 13px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 6px;
+    }
+
+    .top-title h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+    }
+
+    .back-btn {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      border-radius: 9px;
+      border: 1px solid rgba(255,107,0,.75);
+      color: var(--orange-2);
+      font-size: 13px;
+      font-weight: 850;
+      background: rgba(255,107,0,.045);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(13,20,29,.88), rgba(7,12,18,.78));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: .35px;
+    }
+
+    .panel-header span {
+      color: var(--orange-2);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .form {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #e5e7eb;
+      letter-spacing: .35px;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 9px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(2, 6, 10, .72);
+      color: #ffffff;
+      padding: 10px 12px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 88px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: rgba(255,107,0,.78);
+      box-shadow: 0 0 0 3px rgba(255,107,0,.10);
+    }
+
+    .hint {
+      color: var(--muted-2);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 6px;
+    }
+
+    button {
+      min-height: 44px;
+      border: none;
+      border-radius: 9px;
+      padding: 10px 16px;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .btn-save {
+      background: var(--orange);
+      box-shadow: 0 14px 28px rgba(255,107,0,.20);
+    }
+
+    .btn-test {
+      background: #1d4ed8;
+    }
+
+    .btn-reset {
+      background: #374151;
+    }
+
+    .preview-card {
+      padding: 20px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .preview-brand {
+      min-height: 130px;
+      border-radius: 13px;
+      border: 1px solid rgba(255,107,0,.45);
+      background: rgba(255,107,0,.045);
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: left;
+    }
+
+    .preview-logo-row {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .preview-logo-img {
+      width: 70px;
+      height: 70px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.18);
+      object-fit: contain;
+      padding: 6px;
+      background: rgba(255,255,255,.05);
+      display: none;
+      flex: 0 0 auto;
+    }
+
+    .preview-logo-text {
+      font-size: 30px;
+      line-height: .95;
+      font-weight: 950;
+      letter-spacing: -0.9px;
+      text-transform: uppercase;
+      color: #ffffff;
+      overflow-wrap: break-word;
+      word-break: normal;
+      max-width: 100%;
+    }
+
+    .preview-logo-row.com-logo .preview-logo-text {
+      font-size: clamp(20px, 2vw, 28px);
+    }
+
+    .preview-logo-text span { color: var(--orange); }
+
+    .preview-info {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .preview-footer {
+      border-top: 1px solid rgba(255,255,255,.12);
+      padding-top: 14px;
+      color: #cbd5e1;
+      font-size: 11px;
+      line-height: 1.35;
+      font-weight: 400;
+    }
+
+    .preview-footer strong {
+      color: var(--orange);
+      font-weight: 500;
+    }
+
+    .status-msg {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .status-msg.ok {
+      display: block;
+      background: rgba(34, 197, 94, .12);
+      border: 1px solid rgba(34, 197, 94, .35);
+      color: #86efac;
+    }
+
+    @media (max-width: 1050px) {
+      .page { grid-template-columns: 1fr; }
+      .sidebar { min-height: auto; }
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      .content { padding: 18px 12px; }
+      .topbar { flex-direction: column; align-items: stretch; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <aside class="sidebar">
+      <div class="brand-preview-side">
+        <div class="logo-area-side">
+          <img id="sideLogoImg" class="logo-img-side" alt="Logotipo da empresa" />
+          <div class="logo-text-side"><span id="sideLogoPrefixo">IN</span><span id="sideLogoNome">TEGRA</span></div>
+        </div>
+        <div class="brand-subtitle-side" id="sideSubtitulo">Engenharia e Construção</div>
+        <div class="brand-cnpj-side" id="sideCnpj">CNPJ: 30.224.474/0001-88</div>
+      </div>
+
+      <a class="nav-link" href="menu.html" onclick="voltarMenuPrincipal(event)">← Menu Principal</a>
+
+      <div class="side-note">
+        Nesta tela você configura a identidade visual do sistema. O nome, logotipo e textos serão aplicados no menu principal.
+      </div>
+
+      <div></div>
+
+      <div class="side-footer" id="sideFooter">
+        © 2026 <strong>SISTEMA DIGITAL</strong><br>
+        Todos os direitos reservados.<br>
+        Software configurável para empresas.<br>
+        Uso autorizado.
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div class="top-title">
+          <small>Configuração do sistema</small>
+          <h1>Identidade da empresa</h1>
+        </div>
+        <a class="back-btn" href="menu.html" onclick="voltarMenuPrincipal(event)">Voltar ao Menu Principal</a>
+      </div>
+
+      <div class="layout">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Dados visuais</h2>
+            <span>Empresa / Marca</span>
+          </div>
+
+          <form class="form" id="formConfigEmpresa">
+            <div class="grid-2">
+              <div class="field">
+                <label for="logoPrefixo">Prefixo destacado</label>
+                <input id="logoPrefixo" type="text" placeholder="Ex.: IN" maxlength="10" />
+                <div class="hint">Parte do nome que ficará em laranja. Pode deixar vazio.</div>
+              </div>
+
+              <div class="field">
+                <label for="logoNome">Nome principal da empresa</label>
+                <input id="logoNome" type="text" placeholder="Ex.: TEGRA" />
+                <div class="hint">Nome que aparece ao lado ou no lugar do logotipo.</div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="subtitulo">Subtítulo / segmento</label>
+                <input id="subtitulo" type="text" placeholder="Ex.: Engenharia e Construção" />
+              </div>
+
+              <div class="field">
+                <label for="cnpj">CNPJ / identificação</label>
+                <input id="cnpj" type="text" placeholder="Ex.: CNPJ: 00.000.000/0001-00" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="logoArquivo">Importar logotipo</label>
+              <input id="logoArquivo" type="file" accept="image/png,image/jpeg,image/jpg,image/webp" />
+              <div class="hint">Selecione uma imagem PNG, JPG, JPEG ou WEBP. A logo ficará à esquerda e o nome da empresa ao lado, centralizado verticalmente.</div>
+            </div>
+
+            <div class="field">
+              <label for="logoUrl">URL do logotipo</label>
+              <input id="logoUrl" type="text" placeholder="Opcional: cole aqui um link da imagem do logotipo" />
+              <div class="hint">Use somente se preferir carregar a logo por link. O arquivo importado tem prioridade sobre o link.</div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="nomeRodape">Nome no rodapé</label>
+                <input id="nomeRodape" type="text" placeholder="Ex.: SISTEMA DIGITAL ou Nome da Empresa" />
+              </div>
+
+              <div class="field">
+                <label for="anoSistema">Ano</label>
+                <input id="anoSistema" type="text" placeholder="Ex.: 2026" maxlength="4" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="textoRodape">Texto abaixo da versão</label>
+              <textarea id="textoRodape" placeholder="Texto do rodapé do sistema"></textarea>
+              <div class="hint">Esse texto substituirá o trecho abaixo do v1.0.0 no menu principal.</div>
+            </div>
+
+            <div id="statusMsg" class="status-msg"></div>
+
+            <div class="actions">
+              <button class="btn-test" type="button" id="btnPrevisualizar">Pré-visualizar</button>
+              <button class="btn-save" type="submit">Salvar Configuração</button>
+              <button class="btn-reset" type="button" id="btnRestaurar">Restaurar Padrão</button>
+            </div>
+          </form>
+        </section>
+
+        <aside class="panel">
+          <div class="panel-header">
+            <h2>Prévia</h2>
+            <span>Como ficará no menu</span>
+          </div>
+
+          <div class="preview-card">
+            <div class="preview-brand">
+              <div class="preview-logo-row">
+                <img id="previewLogoImg" class="preview-logo-img" alt="Prévia do logotipo" />
+                <div>
+                  <div class="preview-logo-text"><span id="previewPrefixo">IN</span><span id="previewNome">TEGRA</span></div>
+                  <div class="preview-info">
+                    <div id="previewSubtitulo">Engenharia e Construção</div>
+                    <div id="previewCnpj">CNPJ: 30.224.474/0001-88</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="preview-footer" id="previewFooter">
+              © 2026 <strong>SISTEMA DIGITAL</strong><br>
+              Todos os direitos reservados.<br>
+              Software configurável para empresas.<br>
+              Uso autorizado.
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function voltarMenuPrincipal(event) {
+      event.preventDefault();
+      window.location.href = './menu.html';
+    }
+
+    const padraoEmpresa = {
+      logoPrefixo: 'IN',
+      logoNome: 'TEGRA',
+      subtitulo: 'Engenharia e Construção',
+      cnpj: 'CNPJ: 30.224.474/0001-88',
+      logoUrl: '',
+      logoData: '',
+      nomeRodape: 'SISTEMA DIGITAL',
+      anoSistema: '2026',
+      textoRodape: 'Todos os direitos reservados.\nSoftware configurável para empresas.\nUso autorizado.'
+    };
+
+    const campos = {
+      logoPrefixo: document.getElementById('logoPrefixo'),
+      logoNome: document.getElementById('logoNome'),
+      subtitulo: document.getElementById('subtitulo'),
+      cnpj: document.getElementById('cnpj'),
+      logoUrl: document.getElementById('logoUrl'),
+      logoArquivo: document.getElementById('logoArquivo'),
+      nomeRodape: document.getElementById('nomeRodape'),
+      anoSistema: document.getElementById('anoSistema'),
+      textoRodape: document.getElementById('textoRodape')
+    };
+
+    function obterConfigSalva() {
+      try {
+        const salva = localStorage.getItem('configEmpresaSistema');
+        return salva ? { ...padraoEmpresa, ...JSON.parse(salva) } : { ...padraoEmpresa };
+      } catch (erro) {
+        return { ...padraoEmpresa };
+      }
+    }
+
+    function preencherFormulario(config) {
+      Object.keys(campos).forEach((chave) => {
+        if (chave === 'logoArquivo') return;
+        campos[chave].value = config[chave] || '';
+      });
+    }
+
+    let logoDataAtual = '';
+
+    function lerFormulario() {
+      return {
+        logoPrefixo: campos.logoPrefixo.value.trim(),
+        logoNome: campos.logoNome.value.trim(),
+        subtitulo: campos.subtitulo.value.trim(),
+        cnpj: campos.cnpj.value.trim(),
+        logoUrl: campos.logoUrl.value.trim(),
+        logoData: logoDataAtual,
+        nomeRodape: campos.nomeRodape.value.trim(),
+        anoSistema: campos.anoSistema.value.trim(),
+        textoRodape: campos.textoRodape.value.trim()
+      };
+    }
+
+    function atualizarImagem(img, config) {
+      if (!img) return;
+      const origem = config.logoData || config.logoUrl || '';
+      const linhaLogo = img.closest('.logo-area-side') || img.closest('.preview-logo-row');
+
+      if (origem) {
+        img.src = origem;
+        img.style.display = 'block';
+        if (linhaLogo) linhaLogo.classList.add('com-logo');
+        img.onerror = () => {
+          img.style.display = 'none';
+          if (linhaLogo) linhaLogo.classList.remove('com-logo');
+        };
+      } else {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+        if (linhaLogo) linhaLogo.classList.remove('com-logo');
+      }
+    }
+
+    function montarRodape(config) {
+      const ano = config.anoSistema || padraoEmpresa.anoSistema;
+      const nome = config.nomeRodape || config.logoNome || padraoEmpresa.nomeRodape;
+      const texto = (config.textoRodape || padraoEmpresa.textoRodape).replace(/\n/g, '<br>');
+      return `© ${ano} <strong>${nome}</strong><br>${texto}`;
+    }
+
+    function aplicarPrevia(config) {
+      const prefixo = config.logoPrefixo || '';
+      const nome = config.logoNome || padraoEmpresa.logoNome;
+
+      document.getElementById('previewPrefixo').textContent = prefixo;
+      document.getElementById('previewNome').textContent = nome;
+      document.getElementById('previewSubtitulo').textContent = config.subtitulo || '';
+      document.getElementById('previewCnpj').textContent = config.cnpj || '';
+      document.getElementById('previewFooter').innerHTML = montarRodape(config);
+
+      document.getElementById('sideLogoPrefixo').textContent = prefixo;
+      document.getElementById('sideLogoNome').textContent = nome;
+      document.getElementById('sideSubtitulo').textContent = config.subtitulo || '';
+      document.getElementById('sideCnpj').textContent = config.cnpj || '';
+      document.getElementById('sideFooter').innerHTML = montarRodape(config);
+
+      atualizarImagem(document.getElementById('previewLogoImg'), config);
+      atualizarImagem(document.getElementById('sideLogoImg'), config);
+    }
+
+    function mostrarStatus(texto) {
+      const status = document.getElementById('statusMsg');
+      status.textContent = texto;
+      status.className = 'status-msg ok';
+      setTimeout(() => {
+        status.className = 'status-msg';
+        status.textContent = '';
+      }, 3200);
+    }
+
+    campos.logoArquivo.addEventListener('change', (event) => {
+      const arquivo = event.target.files && event.target.files[0];
+      if (!arquivo) return;
+
+      if (!arquivo.type.startsWith('image/')) {
+        mostrarStatus('Selecione um arquivo de imagem válido.');
+        campos.logoArquivo.value = '';
+        return;
+      }
+
+      const leitor = new FileReader();
+      leitor.onload = () => {
+        logoDataAtual = leitor.result;
+        aplicarPrevia({ ...padraoEmpresa, ...lerFormulario() });
+        mostrarStatus('Logotipo importado com sucesso. Clique em Salvar Configuração para gravar.');
+      };
+      leitor.readAsDataURL(arquivo);
+    });
+
+    document.getElementById('btnPrevisualizar').addEventListener('click', () => {
+      aplicarPrevia({ ...padraoEmpresa, ...lerFormulario() });
+    });
+
+    document.getElementById('formConfigEmpresa').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const config = { ...padraoEmpresa, ...lerFormulario() };
+      localStorage.setItem('configEmpresaSistema', JSON.stringify(config));
+      aplicarPrevia(config);
+      mostrarStatus('Configuração salva neste navegador. Ao voltar ao menu principal, a identidade será carregada automaticamente.');
+    });
+
+    document.getElementById('btnRestaurar').addEventListener('click', () => {
+      localStorage.removeItem('configEmpresaSistema');
+      preencherFormulario(padraoEmpresa);
+      aplicarPrevia(padraoEmpresa);
+      mostrarStatus('Configuração padrão restaurada.');
+    });
+
+    const inicial = obterConfigSalva();
+    logoDataAtual = inicial.logoData || '';
+    preencherFormulario(inicial);
+    aplicarPrevia(inicial);
+  </script>
+</body>
+</html>
