@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gantt Cronograma</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #050a0f;
+      --panel: #101722;
+      --border: #243244;
+      --orange: #ff6a00;
+      --green: #22c55e;
+      --blue: #1f8fff;
+      --yellow: #f7b731;
+      --gray: #cbd5e1;
+      --red: #ef4444;
+      --today: #0ea5e9;
+      --grid: #e6edf5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top right, rgba(255,106,0,.16), transparent 34%), var(--bg);
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(330px, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+      padding: 14px 16px;
+      background: rgba(8, 14, 22, .98);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: clamp(32px, 3.2vw, 54px);
+      line-height: .88;
+      letter-spacing: 1px;
+      font-weight: 950;
+      color: #fff;
+    }
+
+    .title h1 span { color: var(--orange); display: block; }
+    .title p { margin: 10px 0 0; color: #dbeafe; font-size: 12px; }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-top: 4px;
+    }
+
+    .controls label {
+      color: var(--orange);
+      font-size: 11px;
+      font-weight: 950;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    select, button {
+      height: 36px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    select {
+      min-width: 300px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #111827;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    button {
+      border: 1px solid var(--orange);
+      background: #07111d;
+      color: var(--orange);
+      padding: 0 14px;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    button:hover { background: var(--orange); color: #fff; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    .status-line {
+      grid-column: 1 / -1;
+      text-align: right;
+      font-size: 12px;
+      font-weight: 900;
+      color: #cbd5e1;
+      min-height: 16px;
+    }
+    .status-line.ok { color: var(--green); }
+    .status-line.erro { color: var(--red); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      padding: 14px 16px 10px;
+    }
+
+    .card {
+      background: rgba(15, 23, 34, .96);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--orange);
+      border-radius: 10px;
+      padding: 10px 12px;
+      min-height: 68px;
+    }
+
+    .card span {
+      display: block;
+      margin-bottom: 7px;
+      color: #cbd5e1;
+      font-size: 10px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .35px;
+    }
+
+    .card strong { display: block; color: #fff; font-size: 22px; line-height: 1; }
+
+    .gantt-wrap { padding: 0 16px 18px; }
+
+    .gantt-paper {
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0,0,0,.26);
+    }
+
+    .gantt-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #cfd8e3;
+      background: #f8fafc;
+    }
+
+    .gantt-head h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 950;
+      color: #111827;
+    }
+
+    .gantt-head p { margin: 3px 0 0; font-size: 11px; color: #475569; }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 10px;
+      font-weight: 900;
+      color: #334155;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: -1px;
+    }
+
+    .table-scroll {
+      overflow: auto;
+      max-height: calc(100vh - 240px);
+      background: #fff;
+    }
+
+    table.gantt-table {
+      border-collapse: collapse;
+      width: max-content;
+      min-width: 100%;
+      table-layout: fixed;
+      font-size: 10px;
+      color: #111827;
+    }
+
+    .gantt-table th,
+    .gantt-table td {
+      border: 1px solid var(--grid);
+      padding: 0;
+      height: 26px;
+      vertical-align: middle;
+    }
+
+    .gantt-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      background: #ffffff;
+      color: #111827;
+      font-weight: 950;
+      text-align: center;
+      height: 34px;
+    }
+
+    .col-tipo {
+      position: sticky;
+      left: 0;
+      z-index: 9;
+      width: 150px;
+      min-width: 150px;
+      max-width: 150px;
+      background: #ffffff;
+      font-weight: 950;
+      text-align: left !important;
+      padding: 6px 8px !important;
+      white-space: normal;
+      line-height: 1.12;
+    }
+
+    .col-atividade {
+      position: sticky;
+      left: 150px;
+      z-index: 9;
+      width: 265px;
+      min-width: 265px;
+      max-width: 265px;
+      background: #ffffff;
+      text-align: left !important;
+      padding: 5px 8px !important;
+      white-space: normal;
+      line-height: 1.12;
+    }
+
+    thead .col-tipo,
+    thead .col-atividade {
+      z-index: 12;
+      background: #ffffff;
+      text-transform: uppercase;
+      color: #0f172a;
+    }
+
+    .group-row td {
+      background: #eef3f9 !important;
+      font-weight: 950;
+      text-transform: uppercase;
+      color: #0f172a;
+      height: 30px;
+    }
+
+    .day-col {
+      width: 23px;
+      min-width: 23px;
+      max-width: 23px;
+      text-align: center;
+      font-size: 9px;
+      font-weight: 950;
+      color: #111827;
+      background: #ffffff;
+    }
+
+    .day-col small { display: block; font-size: 8px; font-weight: 950; color: #111827; margin-top: 1px; }
+    .weekend { background: #f2f6fa !important; }
+    .today-col { border-left: 2px solid var(--today) !important; }
+
+    .bar-cell { position: relative; background: #ffffff; }
+    .bar-cell.weekend { background: #f7fafc; }
+    .bar-cell.today-col { border-left: 2px solid var(--today) !important; }
+
+    .bar-on { background: var(--blue) !important; }
+    .bar-on.concluido { background: var(--green) !important; }
+    .bar-on.andamento { background: var(--blue) !important; }
+    .bar-on.pendente { background: var(--gray) !important; }
+    .bar-on.atrasado { background: var(--red) !important; }
+
+    .bar-start { border-radius: 4px 0 0 4px; }
+    .bar-end { border-radius: 0 4px 4px 0; }
+
+    .pct {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      font-size: 9px;
+      font-weight: 950;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      white-space: nowrap;
+    }
+    .pct.concluido { color: #166534; background: #dcfce7; border-color: #86efac; }
+    .pct.andamento { color: #854d0e; background: #fef3c7; border-color: #fde68a; }
+    .pct.zero, .pct.atrasado { color: #991b1b; background: #fee2e2; border-color: #fecaca; }
+
+    .empty { padding: 42px; text-align: center; color: #64748b; font-weight: 900; }
+
+    @media print {
+      @page { size: A1 landscape; margin: 6mm; }
+      body { background: #fff; }
+      .topbar, .cards { display: none !important; }
+      .gantt-wrap { padding: 0; }
+      .gantt-paper { box-shadow: none; border-radius: 0; }
+      .table-scroll { max-height: none; overflow: visible; }
+      thead { display: table-header-group; }
+    }
+
+    @media (max-width: 900px) {
+      .topbar { grid-template-columns: 1fr; }
+      .controls { justify-content: flex-start; }
+      select { min-width: 100%; }
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="title">
+      <h1>GANTT <span>CRONOGRAMA</span></h1>
+      <p>Gráfico para acompanhamento visual do prazo das atividades.</p>
+    </div>
+    <div class="controls">
+      <label for="selectAbaGantt">Selecionar aba →</label>
+      <select id="selectAbaGantt"><option>Buscando abas...</option></select>
+      <button id="btnCarregar" onclick="carregarOnline()">Carregar Online</button>
+      <button onclick="exportarPDF()">Exportar PDF</button>
+      <button onclick="voltarDashboard()">Voltar Dashboard</button>
+    </div>
+    <div class="status-line" id="statusLinha">Conectando à planilha online...</div>
+  </header>
+
+  <section class="cards">
+    <div class="card"><span>Obra / Aba</span><strong id="cardObra">-</strong></div>
+    <div class="card"><span>Início</span><strong id="cardInicio">-</strong></div>
+    <div class="card"><span>Fim</span><strong id="cardFim">-</strong></div>
+    <div class="card"><span>Atividades</span><strong id="cardAtividades">0</strong></div>
+    <div class="card"><span>Realizado</span><strong id="cardRealizado">0%</strong></div>
+  </section>
+
+  <main class="gantt-wrap">
+    <section class="gantt-paper" id="areaGantt">
+      <div class="gantt-head">
+        <div>
+          <h2 id="tituloGantt">Gráfico de Gantt</h2>
+          <p id="subtituloGantt">Selecione uma aba e clique em Carregar Online.</p>
+        </div>
+        <div class="legend">
+          <span><i style="background: var(--green)"></i>Concluído</span>
+          <span><i style="background: var(--blue)"></i>Em andamento</span>
+          <span><i style="background: var(--gray)"></i>Pendente</span>
+          <span><i style="background: var(--red)"></i>Atrasado</span>
+          <span><i style="background: var(--today); width: 3px;"></i>Hoje</span>
+        </div>
+      </div>
+      <div class="table-scroll" id="ganttScroll">
+        <div class="empty">Nenhuma planilha carregada.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbycTigp6BcQladVFhuwFqpOZH_4_DnC3Z00eoUxcYvGK-Q9aH7ZmjxVbLpnOMwA5OVa/exec';
+    let dadosGantt = [];
+    let obraAtual = '';
+    let empresaAtual = '';
+
+    document.addEventListener('DOMContentLoaded', carregarAbasOnline);
+
+    async function carregarAbasOnline() {
+      const select = document.getElementById('selectAbaGantt');
+      const status = document.getElementById('statusLinha');
+      select.innerHTML = '<option value="">Carregando abas...</option>';
+      status.className = 'status-line';
+      status.textContent = 'Conectando à planilha online...';
+
+      try {
+        const resposta = await fetch(WEBAPP_URL + '?action=listSheets&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+        const resultado = JSON.parse(await resposta.text());
+        let abas = [];
+        if (Array.isArray(resultado)) abas = resultado;
+        else if (Array.isArray(resultado.abas)) abas = resultado.abas;
+        else if (Array.isArray(resultado.sheets)) abas = resultado.sheets;
+        else if (Array.isArray(resultado.planilhas)) abas = resultado.planilhas;
+        else if (Array.isArray(resultado.data)) abas = resultado.data;
+        abas = abas.map(item => typeof item === 'string' ? item : (item.name || item.nome || item.sheetName || item.titulo || '')).filter(Boolean);
+
+        select.innerHTML = '<option value="">Selecione a aba / obra</option>';
+        abas.forEach(aba => {
+          const op = document.createElement('option');
+          op.value = aba;
+          op.textContent = aba;
+          select.appendChild(op);
+        });
+        status.textContent = abas.length ? 'Planilha online disponível.' : 'Nenhuma aba encontrada.';
+        status.className = abas.length ? 'status-line ok' : 'status-line erro';
+      } catch (erro) {
+        console.error(erro);
+        select.innerHTML = '<option value="">Erro ao buscar abas</option>';
+        status.textContent = 'Erro ao conectar na planilha online.';
+        status.className = 'status-line erro';
+      }
+    }
+
+    async function carregarOnline() {
+      const select = document.getElementById('selectAbaGantt');
+      const status = document.getElementById('statusLinha');
+      const botao = document.getElementById('btnCarregar');
+      const aba = select.value;
+      if (!aba) {
+        status.textContent = 'Selecione uma aba antes de carregar.';
+        status.className = 'status-line erro';
+        return;
+      }
+      botao.disabled = true;
+      status.textContent = 'Carregando cronograma online...';
+      status.className = 'status-line';
+      try {
+        const resposta = await fetch(WEBAPP_URL + '?sheetName=' + encodeURIComponent(aba) + '&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+        const resultado = JSON.parse(await resposta.text());
+        const matriz = resultado.dados || resultado.values || resultado.data || resultado.linhas || [];
+        if (!Array.isArray(matriz) || !matriz.length) throw new Error('A aba carregou vazia.');
+        empresaAtual = buscarEmpresaMatriz(matriz);
+        dadosGantt = converterMatriz(matriz, aba);
+        obraAtual = aba;
+        if (!dadosGantt.length) throw new Error('Não encontrei ATIVIDADE, INÍCIO e FIM.');
+        renderizarGantt(dadosGantt, aba);
+        status.textContent = 'Cronograma carregado com sucesso.';
+        status.className = 'status-line ok';
+      } catch (erro) {
+        console.error(erro);
+        status.textContent = erro.message || 'Erro ao carregar cronograma.';
+        status.className = 'status-line erro';
+      } finally {
+        botao.disabled = false;
+      }
+    }
+
+    function converterMatriz(matrizOriginal, nomeObra) {
+      const matriz = matrizOriginal.map(linha => Array.isArray(linha) ? linha : [linha]);
+      const headerIndex = matriz.findIndex(linha => {
+        const texto = linha.map(limparCampo).join('|');
+        return texto.includes('ATIVIDADE') && texto.includes('INICIO') && texto.includes('FIM');
+      });
+      if (headerIndex < 0) return [];
+      const headers = matriz[headerIndex].map(limparCampo);
+      const idx = nome => headers.findIndex(h => h === nome || h.includes(nome));
+      const iSetor = idx('SETOR');
+      const iLocal = idx('LOCAL');
+      const iTipo = headers.findIndex(h => h.includes('TIPO') && h.includes('SERVICO'));
+      const iAtividade = idx('ATIVIDADE');
+      const iInicio = idx('INICIO');
+      const iFim = idx('FIM');
+      const iStatus = idx('STATUS');
+      const iRealizado = idx('REALIZADO');
+      return matriz.slice(headerIndex + 1).map(linha => ({
+        OBRA: nomeObra,
+        SETOR: linha[iSetor >= 0 ? iSetor : 0] || '',
+        LOCAL: linha[iLocal >= 0 ? iLocal : 1] || '',
+        TIPO_SERVICO: linha[iTipo >= 0 ? iTipo : 2] || '',
+        ATIVIDADE: linha[iAtividade >= 0 ? iAtividade : 3] || '',
+        INICIO: linha[iInicio >= 0 ? iInicio : 5] || '',
+        FIM: linha[iFim >= 0 ? iFim : 6] || '',
+        STATUS: linha[iStatus >= 0 ? iStatus : 7] || '',
+        REALIZADO: linha[iRealizado >= 0 ? iRealizado : 8] || ''
+      })).filter(item => item.ATIVIDADE && parseData(item.INICIO) && parseData(item.FIM));
+    }
+
+    function renderizarGantt(dados, obra) {
+      const inicio = new Date(Math.min(...dados.map(d => parseData(d.INICIO).getTime())));
+      const fim = new Date(Math.max(...dados.map(d => parseData(d.FIM).getTime())));
+      const totalDias = diasEntre(inicio, fim) + 1;
+      const hoje = zerarHora(new Date());
+      const hojeIndex = hoje >= inicio && hoje <= fim ? diasEntre(inicio, hoje) : -1;
+      const grupos = agruparPorTipo(dados);
+
+      let html = '<table class="gantt-table"><thead><tr>';
+      html += '<th class="col-tipo">Tipo / Local</th><th class="col-atividade">Atividade</th>';
+      for (let i = 0; i < totalDias; i++) {
+        const data = adicionarDias(inicio, i);
+        const cls = (ehFimSemana(data) ? ' weekend' : '') + (i === hojeIndex ? ' today-col' : '');
+        html += `<th class="day-col${cls}"><strong>${String(data.getDate()).padStart(2, '0')}</strong><small>${diaSemana(data)}</small></th>`;
+      }
+      html += '</tr></thead><tbody>';
+
+      grupos.forEach(grupo => {
+        html += `<tr class="group-row"><td class="col-tipo">${escapeHtml(grupo.nome)}</td><td class="col-atividade">${escapeHtml(grupo.local || '')}</td>`;
+        for (let i = 0; i < totalDias; i++) html += `<td class="bar-cell ${i === hojeIndex ? 'today-col' : ''} ${ehFimSemana(adicionarDias(inicio, i)) ? 'weekend' : ''}"></td>`;
+        html += '</tr>';
+
+        grupo.itens.forEach(item => {
+          const ini = parseData(item.INICIO);
+          const fimItem = parseData(item.FIM);
+          const start = diasEntre(inicio, ini);
+          const end = diasEntre(inicio, fimItem);
+          const realizado = numero(item.REALIZADO);
+          const classe = classeStatus(item.STATUS, realizado);
+          const label = classeLabelPercentual(realizado, item.STATUS);
+          html += `<tr><td class="col-tipo">${escapeHtml(item.SETOR || '')}</td><td class="col-atividade">${escapeHtml(item.ATIVIDADE || '')}</td>`;
+          for (let i = 0; i < totalDias; i++) {
+            const data = adicionarDias(inicio, i);
+            const inBar = i >= start && i <= end;
+            const classes = ['bar-cell'];
+            if (ehFimSemana(data)) classes.push('weekend');
+            if (i === hojeIndex) classes.push('today-col');
+            if (inBar) classes.push('bar-on', classe);
+            if (i === start) classes.push('bar-start');
+            if (i === end) classes.push('bar-end');
+            html += `<td class="${classes.join(' ')}">${i === end ? `<span class="pct ${label}">${realizado}%</span>` : ''}</td>`;
+          }
+          html += '</tr>';
+        });
+      });
+
+      html += '</tbody></table>';
+      document.getElementById('ganttScroll').innerHTML = html;
+      atualizarCards(dados, obra, inicio, fim);
+    }
+
+    function atualizarCards(dados, obra, inicio, fim) {
+      document.getElementById('cardObra').textContent = obra;
+      document.getElementById('cardInicio').textContent = formatarData(inicio);
+      document.getElementById('cardFim').textContent = formatarData(fim);
+      document.getElementById('cardAtividades').textContent = dados.length;
+      const media = dados.length ? Math.round(dados.reduce((acc, item) => acc + numero(item.REALIZADO), 0) / dados.length) : 0;
+      document.getElementById('cardRealizado').textContent = media + '%';
+      document.getElementById('tituloGantt').textContent = 'Gráfico de Gantt - ' + obra + (empresaAtual ? ' | Empresa: ' + empresaAtual : '');
+      document.getElementById('subtituloGantt').textContent = `Período: ${formatarData(inicio)} até ${formatarData(fim)} • ${dados.length} atividades`;
+    }
+
+    function agruparPorTipo(dados) {
+      const grupos = [];
+      let grupoAtual = null;
+      dados.forEach(item => {
+        const tipo = String(item.TIPO_SERVICO || '').trim();
+        if (tipo || !grupoAtual) {
+          grupoAtual = { nome: tipo || 'Atividades', local: item.LOCAL || '', itens: [] };
+          grupos.push(grupoAtual);
+        }
+        grupoAtual.itens.push(item);
+      });
+      return grupos;
+    }
+
+    function buscarEmpresaMatriz(matriz) {
+      for (const linha of matriz || []) {
+        if (!Array.isArray(linha)) continue;
+        for (let i = 0; i < linha.length; i++) {
+          const texto = normalizar(linha[i]);
+          if (texto.includes('EMPRESA')) {
+            for (let j = i + 1; j < linha.length; j++) if (linha[j]) return String(linha[j]).trim();
+          }
+        }
+      }
+      return '';
+    }
+
+    function classeStatus(status, realizado) {
+      const s = normalizar(status);
+      if (realizado >= 100 || s.includes('CONCLUIDO')) return 'concluido';
+      if (s.includes('ATRASADO')) return 'atrasado';
+      if (realizado > 0 || s.includes('ANDAMENTO')) return 'andamento';
+      return 'pendente';
+    }
+
+    function classeLabelPercentual(realizado, status) {
+      const s = normalizar(status);
+      if (realizado >= 100 || s.includes('CONCLUIDO')) return 'concluido';
+      if (realizado <= 0 || s.includes('PENDENTE') || s.includes('ATRASADO')) return 'zero';
+      return 'andamento';
+    }
+
+    async function exportarPDF() {
+      const area = document.getElementById('areaGantt');
+      if (!area || !window.html2canvas || !window.jspdf?.jsPDF) {
+        alert('Biblioteca de PDF não carregou. Verifique a internet.');
+        return;
+      }
+      const scroll = document.getElementById('ganttScroll');
+      const oldMax = scroll.style.maxHeight;
+      const oldOverflow = scroll.style.overflow;
+      scroll.style.maxHeight = 'none';
+      scroll.style.overflow = 'visible';
+      await new Promise(r => requestAnimationFrame(r));
+
+      try {
+        const canvas = await html2canvas(area, {
+          scale: 1.4,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          width: area.scrollWidth,
+          height: area.scrollHeight,
+          windowWidth: area.scrollWidth,
+          windowHeight: area.scrollHeight,
+          scrollX: 0,
+          scrollY: 0
+        });
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('landscape', 'mm', 'a1');
+        const pw = pdf.internal.pageSize.getWidth();
+        const ph = pdf.internal.pageSize.getHeight();
+        const margin = 6;
+        const maxW = pw - margin * 2;
+        const maxH = ph - margin * 2;
+        const ratio = Math.min(maxW / canvas.width, maxH / canvas.height);
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        const x = (pw - w) / 2;
+        const y = (ph - h) / 2;
+        pdf.addImage(canvas.toDataURL('image/jpeg', .98), 'JPEG', x, y, w, h);
+        const nome = 'gantt-' + normalizar(obraAtual || 'cronograma').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.pdf';
+        pdf.save(nome);
+      } finally {
+        scroll.style.maxHeight = oldMax;
+        scroll.style.overflow = oldOverflow;
+      }
+    }
+
+    function voltarDashboard() {
+      window.location.href = '../../dashboard/dashboard.html';
+    }
+
+    function parseData(valor) {
+      if (!valor) return null;
+      if (valor instanceof Date && !isNaN(valor)) return zerarHora(valor);
+      const texto = String(valor).trim();
+      const br = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if (br) return zerarHora(new Date(Number(br[3].length === 2 ? '20' + br[3] : br[3]), Number(br[2]) - 1, Number(br[1])));
+      const iso = texto.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (iso) return zerarHora(new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])));
+      const data = new Date(texto);
+      return isNaN(data) ? null : zerarHora(data);
+    }
+
+    function numero(valor) {
+      const n = Number(String(valor || '0').replace('%', '').replace(',', '.').trim());
+      return isNaN(n) ? 0 : n;
+    }
+
+    function normalizar(valor) {
+      return String(valor || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function limparCampo(valor) {
+      return normalizar(valor).replace(/_/g, ' ').replace(/-/g, ' ').replace(/\s+/g, ' ');
+    }
+
+    function zerarHora(data) { return new Date(data.getFullYear(), data.getMonth(), data.getDate()); }
+    function adicionarDias(data, dias) { const d = new Date(data); d.setDate(d.getDate() + dias); return zerarHora(d); }
+    function diasEntre(inicio, fim) { return Math.round((zerarHora(fim) - zerarHora(inicio)) / 86400000); }
+    function formatarData(data) { return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }); }
+    function diaSemana(data) { return ['D','S','T','Q','Q','S','S'][data.getDay()]; }
+    function ehFimSemana(data) { return data.getDay() === 0 || data.getDay() === 6; }
+    function escapeHtml(valor) { return String(valor || '').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])); }
+  </script>
+</body>
+</html>
