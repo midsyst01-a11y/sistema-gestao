@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pedido de Materiais</title>
+
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d8dee8;
+      --orange: #f97316;
+      --orange-dark: #ea580c;
+      --dark: #111827;
+      --dark-2: #1f2937;
+      --print-soft: #fff1e8;
+      --print-border: #efb487;
+      --danger: #dc2626;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .title-area h1 {
+      margin: 0;
+      font-size: 26px;
+      color: var(--dark);
+      letter-spacing: 0.5px;
+    }
+
+    .title-area p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    button, .btn-link {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      transition: 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary { background: var(--orange); color: #fff; }
+    .btn-primary:hover { background: var(--orange-dark); }
+    .btn-secondary { background: var(--dark-2); color: #fff; }
+    .btn-secondary:hover { background: var(--dark); }
+    .btn-outline { background: #fff; color: var(--dark); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--orange); color: var(--orange-dark); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(90deg, #fff, #fff7ed);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-header h2 { margin: 0; font-size: 17px; color: var(--dark); }
+    .card-body { padding: 18px; }
+
+    .form-section {
+      margin-bottom: 20px;
+      padding-bottom: 18px;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .form-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--dark);
+    }
+
+    .section-title::before {
+      content: "";
+      width: 5px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--orange);
+      display: inline-block;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--dark-2);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+      outline: none;
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+
+    .col-2 { grid-column: span 2; }
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-5 { grid-column: span 5; }
+    .col-6 { grid-column: span 6; }
+    .col-7 { grid-column: span 7; }
+    .col-8 { grid-column: span 8; }
+    .col-9 { grid-column: span 9; }
+    .col-10 { grid-column: span 10; }
+    .col-12 { grid-column: span 12; }
+
+    .import-box {
+      margin-bottom: 14px;
+      padding: 14px;
+      border: 1px dashed #fdba74;
+      border-radius: 14px;
+      background: #fffaf6;
+    }
+
+    .import-box-title {
+      margin: 0 0 5px;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--dark);
+    }
+
+    .import-box-text {
+      margin: 0 0 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .import-box textarea {
+      min-height: 118px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .import-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .import-result {
+      display: none;
+      margin-top: 10px;
+      padding: 9px 10px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #ecfdf5;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .import-result.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border-color: #fecaca;
+    }
+
+    .items-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    .form-table { min-width: 670px; }
+
+    th {
+      background: #fff7ed;
+      color: var(--dark);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    td {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    td input, td select { border-radius: 8px; padding: 9px 10px; }
+
+    .table-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .remove-item {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid #fecaca;
+      color: var(--danger);
+      font-weight: 900;
+    }
+
+    .preview-card { position: sticky; top: 20px; }
+
+    .mini-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .mini-box {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .mini-box span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .mini-box strong { font-size: 16px; color: var(--dark); }
+
+    .whatsapp-output {
+      min-height: 310px;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      background: #f9fafb;
+    }
+
+    .hint { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.4; }
+
+    /* DOCUMENTO COMPACTO PARA EXPORTAÇÃO EM PDF */
+    #pdfArea {
+      position: fixed;
+      left: -99999px;
+      top: 0;
+      width: 760px;
+      background: #fff;
+      color: #000;
+      padding: 24px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .pdf-document {
+      width: 100%;
+      border: 1px solid #e0e0e0;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .pdf-title-block {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 16px;
+      background: var(--print-soft);
+      border: 1px solid var(--print-border);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .pdf-company { font-size: 18px; font-weight: 800; }
+    .pdf-title { font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: .8px; }
+
+    .pdf-header-data {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .pdf-info, .pdf-order-box {
+      border: 1px solid var(--print-border);
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .pdf-order-box { background: #fff8f3; }
+
+    .pdf-section-title {
+      background: var(--print-soft);
+      border: 1px solid var(--print-border);
+      padding: 6px 8px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+
+    .pdf-delivery {
+      margin-bottom: 14px;
+    }
+
+    .pdf-delivery-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr 1fr;
+      gap: 0;
+      border: 1px solid var(--print-border);
+      border-top: none;
+    }
+
+    .pdf-delivery-grid div {
+      min-height: 47px;
+      padding: 8px;
+      font-size: 11px;
+      border-right: 1px solid var(--print-border);
+    }
+
+    .pdf-delivery-grid div:last-child { border-right: none; }
+    .pdf-delivery-grid strong { display: block; margin-bottom: 4px; }
+
+    .pdf-table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+    }
+
+    .pdf-table th {
+      background: var(--print-soft);
+      border: 1px solid var(--print-border);
+      color: #000;
+      font-size: 11px;
+      text-align: center;
+      padding: 7px 5px;
+    }
+
+    .pdf-table td {
+      border: 1px solid var(--print-border);
+      font-size: 11px;
+      padding: 7px 5px;
+      height: 29px;
+      word-break: break-word;
+    }
+
+    .center { text-align: center; }
+
+    .pdf-comments {
+      border: 1px solid var(--print-border);
+      min-height: 86px;
+      margin-bottom: 28px;
+    }
+
+    .pdf-comments .pdf-section-title { border: none; border-bottom: 1px solid var(--print-border); }
+
+    .pdf-comments-text {
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      min-height: 50px;
+      white-space: pre-wrap;
+    }
+
+    .pdf-signatures {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 44px;
+      padding: 0 28px 4px;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .signature-line { border-top: 1px solid #000; padding-top: 6px; }
+
+    @media print {
+      @page { size: A4 portrait; margin: 13mm; }
+      body * { visibility: hidden; }
+      #pdfArea, #pdfArea * { visibility: visible; }
+      #pdfArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 0;
+      }
+      .pdf-document { border: none; padding: 0; }
+    }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      .preview-card { position: static; }
+    }
+
+    @media (max-width: 760px) {
+      .app { padding: 14px; }
+      .topbar { align-items: stretch; flex-direction: column; }
+      .actions { justify-content: stretch; }
+      button, .btn-link { width: 100%; }
+      .form-grid { grid-template-columns: 1fr; }
+      .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-12 { grid-column: span 1; }
+      .mini-info { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title-area">
+        <h1>Pedido de Materiais</h1>
+        <p>Submódulo de Relatórios • Solicitação interna de materiais</p>
+      </div>
+      <div class="actions">
+        <a class="btn-link btn-outline" href="../relatorios.html">← Voltar</a>
+        <button class="btn-outline" onclick="limparFormulario()">Limpar</button>
+        <button class="btn-secondary" onclick="gerarTextoWhatsApp()">Gerar WhatsApp</button>
+        <button class="btn-primary" onclick="exportarPDF()">Exportar PDF</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <h2>Formulário do Pedido</h2>
+          <button class="btn-outline" onclick="novoNumeroPedido()">Novo Nº</button>
+        </div>
+        <div class="card-body">
+          <div class="form-section">
+            <h3 class="section-title">Dados Gerais</h3>
+            <div class="form-grid">
+              <div class="field col-3"><label>Nº do Pedido</label><input id="numeroPedido" type="text" placeholder="PM-000001" /></div>
+              <div class="field col-3"><label>Data</label><input id="dataPedido" type="date" /></div>
+              <div class="field col-3"><label>Prioridade</label><select id="prioridade"><option>NORMAL</option><option>BAIXA</option><option>MÉDIA</option><option>ALTA</option><option>URGENTE</option></select></div>
+              <div class="field col-3"><label>Status</label><select id="statusPedido"><option>PENDENTE</option><option>SOLICITADO</option><option>APROVADO</option><option>ATENDIDO</option><option>CANCELADO</option></select></div>
+              <div class="field col-6"><label>Obra</label><input id="obra" type="text" placeholder="Nome da obra" /></div>
+              <div class="field col-6"><label>Empresa</label><input id="empresa" type="text" value="Integra Engenharia" /></div>
+              <div class="field col-4"><label>Solicitante</label><input id="solicitante" type="text" placeholder="Nome do solicitante" /></div>
+              <div class="field col-4"><label>Setor</label><input id="setor" type="text" placeholder="Ex.: Armazém / Expedição" /></div>
+              <div class="field col-4"><label>Local de Aplicação</label><input id="localAplicacao" type="text" placeholder="Local onde será utilizado" /></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">Entrega / Recebimento</h3>
+            <div class="form-grid">
+              <div class="field col-4"><label>Responsável pelo Recebimento</label><input id="responsavelRecebimento" type="text" placeholder="Nome do responsável" /></div>
+              <div class="field col-6"><label>Local de Entrega</label><input id="localEntrega" type="text" placeholder="Informe o local de entrega do material" /></div>
+              <div class="field col-2"><label>Telefone</label><input id="telefoneRecebimento" type="text" placeholder="(00) 00000-0000" /></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">Materiais Solicitados</h3>
+
+            <div class="import-box">
+              <p class="import-box-title">Importar Lista Rápida</p>
+              <p class="import-box-text">Cole uma lista recebida e o sistema organizará automaticamente os itens, quantidades e unidades na tabela abaixo. Depois, os dados continuam editáveis.</p>
+              <textarea id="listaImportacao" placeholder="Exemplos:&#10;10 un Parabolt 3/8&#10;5 sc Cimento CP II&#10;12 m Cabo de aço 8 mm&#10;Tábua de peroba - 4 pç"></textarea>
+              <div class="import-actions">
+                <button class="btn-primary" type="button" onclick="importarListaMateriais('substituir')">Organizar e Substituir Tabela</button>
+                <button class="btn-outline" type="button" onclick="importarListaMateriais('adicionar')">Adicionar à Tabela</button>
+                <button class="btn-outline" type="button" onclick="limparListaImportacao()">Limpar Campo</button>
+              </div>
+              <div id="resultadoImportacao" class="import-result"></div>
+            </div>
+
+            <div class="items-table-wrap">
+              <table class="form-table">
+                <thead>
+                  <tr>
+                    <th style="width:72px;">Item</th>
+                    <th>Descrição do Material</th>
+                    <th style="width:115px;">QTD.</th>
+                    <th style="width:115px;">Unidade</th>
+                    <th style="width:54px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="itensBody"></tbody>
+              </table>
+            </div>
+            <div class="table-actions">
+              <button class="btn-outline" onclick="adicionarItem()">+ Adicionar Item</button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">Observações / Instruções</h3>
+            <div class="form-grid">
+              <div class="field col-12">
+                <label>Observações</label>
+                <textarea id="observacoes" placeholder="Informe instruções, especificações do material, urgência ou orientação para entrega."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card preview-card">
+        <div class="card-header"><h2>Resumo / WhatsApp</h2></div>
+        <div class="card-body">
+          <div class="mini-info">
+            <div class="mini-box"><span>Nº Pedido</span><strong id="miniNumero">PM-000001</strong></div>
+            <div class="mini-box"><span>Itens</span><strong id="miniItens">0</strong></div>
+            <div class="mini-box"><span>Prioridade</span><strong id="miniPrioridade">NORMAL</strong></div>
+            <div class="mini-box"><span>Status</span><strong id="miniStatus">PENDENTE</strong></div>
+          </div>
+          <textarea id="textoWhatsApp" class="whatsapp-output" readonly placeholder="Clique em 'Gerar WhatsApp' para montar a mensagem organizada."></textarea>
+          <div class="table-actions">
+            <button class="btn-secondary" onclick="copiarWhatsApp()">Copiar Texto</button>
+            <button class="btn-primary" onclick="abrirWhatsApp()">Abrir WhatsApp</button>
+          </div>
+          <p class="hint">Para anexar o PDF no WhatsApp, primeiro exporte o arquivo e faça o envio manual junto da mensagem.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pdfArea">
+    <div class="pdf-document">
+      <div class="pdf-title-block">
+        <div class="pdf-company" id="pdfEmpresaTopo">Integra Engenharia</div>
+        <div class="pdf-title">Pedido de Materiais</div>
+      </div>
+
+      <div class="pdf-header-data">
+        <div class="pdf-info">
+          <div><strong>Obra:</strong> <span id="pdfObra"></span></div>
+          <div><strong>Solicitante:</strong> <span id="pdfSolicitante"></span></div>
+          <div><strong>Setor:</strong> <span id="pdfSetor"></span></div>
+          <div><strong>Local de Aplicação:</strong> <span id="pdfLocalAplicacao"></span></div>
+        </div>
+        <div class="pdf-order-box">
+          <div><strong>Data:</strong> <span id="pdfDataPedido"></span></div>
+          <div><strong>Pedido nº:</strong> <span id="pdfNumeroPedido"></span></div>
+          <div><strong>Prioridade:</strong> <span id="pdfPrioridade"></span></div>
+          <div><strong>Status:</strong> <span id="pdfStatus"></span></div>
+        </div>
+      </div>
+
+      <div class="pdf-delivery">
+        <div class="pdf-section-title">Entrega / Recebimento</div>
+        <div class="pdf-delivery-grid">
+          <div><strong>Responsável</strong><span id="pdfResponsavelRecebimento"></span></div>
+          <div><strong>Local de Entrega</strong><span id="pdfLocalEntrega"></span></div>
+          <div><strong>Telefone</strong><span id="pdfTelefoneRecebimento"></span></div>
+        </div>
+      </div>
+
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th style="width:52px;">Item</th>
+            <th>Descrição do Material</th>
+            <th style="width:80px;">QTD.</th>
+            <th style="width:90px;">Unidade</th>
+          </tr>
+        </thead>
+        <tbody id="pdfItensBody"></tbody>
+      </table>
+
+      <div class="pdf-comments">
+        <div class="pdf-section-title">Observações / Instruções</div>
+        <div class="pdf-comments-text" id="pdfObservacoes"></div>
+      </div>
+
+      <div class="pdf-signatures">
+        <div class="signature-line">Solicitante</div>
+        <div class="signature-line">Responsável / Aprovação</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'integra_pedido_materiais_numero';
+
+    function getValue(id) {
+      return document.getElementById(id)?.value?.trim() || '';
+    }
+
+    function setText(id, value) {
+      const elemento = document.getElementById(id);
+      if (elemento) elemento.textContent = value || '-';
+    }
+
+    function formatarData(dataISO) {
+      if (!dataISO) return '-';
+      const partes = dataISO.split('-');
+      return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : dataISO;
+    }
+
+    function numeroPedidoFormatado(numero) {
+      return 'PM-' + String(numero).padStart(6, '0');
+    }
+
+    function iniciarNumeroPedido() {
+      let numeroAtual = Number(localStorage.getItem(STORAGE_KEY) || 1);
+      localStorage.setItem(STORAGE_KEY, numeroAtual);
+      document.getElementById('numeroPedido').value = numeroPedidoFormatado(numeroAtual);
+      atualizarResumo();
+    }
+
+    function novoNumeroPedido() {
+      let numeroAtual = Number(localStorage.getItem(STORAGE_KEY) || 1) + 1;
+      localStorage.setItem(STORAGE_KEY, numeroAtual);
+      document.getElementById('numeroPedido').value = numeroPedidoFormatado(numeroAtual);
+      atualizarResumo();
+    }
+
+    function definirDataAtual() {
+      const hoje = new Date();
+      const yyyy = hoje.getFullYear();
+      const mm = String(hoje.getMonth() + 1).padStart(2, '0');
+      const dd = String(hoje.getDate()).padStart(2, '0');
+      document.getElementById('dataPedido').value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    function removerAcentos(texto) {
+      return String(texto || '')
+        .replaceAll('á', 'a').replaceAll('à', 'a').replaceAll('ã', 'a').replaceAll('â', 'a')
+        .replaceAll('é', 'e').replaceAll('ê', 'e').replaceAll('í', 'i')
+        .replaceAll('ó', 'o').replaceAll('õ', 'o').replaceAll('ô', 'o')
+        .replaceAll('ú', 'u').replaceAll('ç', 'c');
+    }
+
+    function normalizarUnidade(unidadeRecebida) {
+      const unidade = removerAcentos(String(unidadeRecebida || '').toLowerCase().replaceAll('.', '').trim());
+      const mapa = {
+        un: 'UN', und: 'UN', unid: 'UN', unidade: 'UN', unidades: 'UN',
+        pc: 'PÇ', peca: 'PÇ', pecas: 'PÇ',
+        m: 'M', metro: 'M', metros: 'M',
+        m2: 'M²', 'm²': 'M²',
+        m3: 'M³', 'm³': 'M³',
+        kg: 'KG', quilo: 'KG', quilos: 'KG',
+        sc: 'SC', saco: 'SC', sacos: 'SC',
+        cx: 'CX', caixa: 'CX', caixas: 'CX',
+        lt: 'LT', l: 'LT', litro: 'LT', litros: 'LT',
+        gl: 'GL', galao: 'GL', galoes: 'GL',
+        vb: 'VB', vergalhao: 'VB', vergalhoes: 'VB',
+        rl: 'RL', rolo: 'RL', rolos: 'RL'
+      };
+      return mapa[unidade] || '';
+    }
+
+    function converterQuantidade(valor) {
+      const numero = Number(String(valor || '').replace(',', '.'));
+      return Number.isFinite(numero) && numero > 0 ? String(valor).replace(',', '.') : '';
+    }
+
+    function analisarLinhaMaterial(linhaOriginal) {
+      let partes = String(linhaOriginal || '').trim().split(' ').filter(Boolean);
+      if (!partes.length) return null;
+
+      if (['-', '•', '*'].includes(partes[0])) partes.shift();
+      if (partes[0] && (partes[0].endsWith('.') || partes[0].endsWith(')'))) {
+        const prefixo = partes[0].slice(0, -1);
+        if (Number.isInteger(Number(prefixo))) partes.shift();
+      }
+      if (!partes.length) return null;
+
+      const quantidadeInicial = converterQuantidade(partes[0]);
+      if (quantidadeInicial) {
+        const unidadeInicial = normalizarUnidade(partes[1]);
+        const inicioDescricao = unidadeInicial ? 2 : 1;
+        const descricao = partes.slice(inicioDescricao).join(' ').trim();
+        if (descricao) return { descricao, quantidade: quantidadeInicial, unidade: unidadeInicial || 'UN' };
+      }
+
+      const separador = partes.findIndex(parte => ['-', '–', '—', ':'].includes(parte));
+      if (separador > 0 && separador < partes.length - 1) {
+        const quantidadeFinal = converterQuantidade(partes[separador + 1]);
+        const unidadeFinal = normalizarUnidade(partes[separador + 2]);
+        if (quantidadeFinal) {
+          return {
+            descricao: partes.slice(0, separador).join(' '),
+            quantidade: quantidadeFinal,
+            unidade: unidadeFinal || 'UN'
+          };
+        }
+      }
+
+      return { descricao: partes.join(' '), quantidade: '', unidade: 'UN' };
+    }
+
+    function mostrarResultadoImportacao(mensagem, erro = false) {
+      const resultado = document.getElementById('resultadoImportacao');
+      resultado.textContent = mensagem;
+      resultado.classList.toggle('error', erro);
+      resultado.style.display = 'block';
+    }
+
+    function importarListaMateriais(modo) {
+      const texto = document.getElementById('listaImportacao').value.trim();
+      if (!texto) {
+        mostrarResultadoImportacao('Cole uma lista de materiais antes de organizar.', true);
+        return;
+      }
+
+      const itensImportados = texto.split(String.fromCharCode(10))
+        .map(linha => analisarLinhaMaterial(linha.replace(String.fromCharCode(13), '')))
+        .filter(Boolean);
+
+      if (!itensImportados.length) {
+        mostrarResultadoImportacao('Nenhum item foi identificado na lista informada.', true);
+        return;
+      }
+
+      const corpo = document.getElementById('itensBody');
+      if (modo === 'substituir' && obterItens().length > 0) {
+        const confirmar = confirm('A tabela já possui itens preenchidos. Deseja substituí-los pela lista colada?');
+        if (!confirmar) return;
+      }
+
+      if (modo === 'substituir') corpo.innerHTML = '';
+      itensImportados.forEach(item => adicionarItem(item));
+      renumerarItens();
+      atualizarResumo();
+      mostrarResultadoImportacao(`${itensImportados.length} item(ns) organizado(s) na tabela. Confira os dados antes de exportar.`);
+    }
+
+    function limparListaImportacao() {
+      document.getElementById('listaImportacao').value = '';
+      const resultado = document.getElementById('resultadoImportacao');
+      resultado.style.display = 'none';
+      resultado.textContent = '';
+      resultado.classList.remove('error');
+    }
+
+    function adicionarItem(dados = {}) {
+      const tbody = document.getElementById('itensBody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="item-numero" type="text" value="${dados.item || tbody.children.length + 1}" oninput="atualizarResumo()"></td>
+        <td><input class="item-descricao" type="text" placeholder="Descrição completa do material" value="${dados.descricao || ''}" oninput="atualizarResumo()"></td>
+        <td><input class="item-quantidade" type="number" step="0.01" min="0" value="${dados.quantidade || ''}" oninput="atualizarResumo()"></td>
+        <td>
+          <select class="item-unidade" onchange="atualizarResumo()">
+            <option value="UN">UN</option><option value="PÇ">PÇ</option><option value="M">M</option>
+            <option value="M²">M²</option><option value="M³">M³</option><option value="KG">KG</option>
+            <option value="SC">SC</option><option value="CX">CX</option><option value="LT">LT</option>
+            <option value="GL">GL</option><option value="VB">VB</option><option value="RL">RL</option>
+          </select>
+        </td>
+        <td><button class="remove-item" type="button" onclick="removerItem(this)">×</button></td>
+      `;
+      tbody.appendChild(tr);
+      if (dados.unidade) tr.querySelector('.item-unidade').value = dados.unidade;
+      atualizarResumo();
+    }
+
+    function removerItem(botao) {
+      botao.closest('tr').remove();
+      renumerarItens();
+      atualizarResumo();
+    }
+
+    function renumerarItens() {
+      document.querySelectorAll('#itensBody tr').forEach((tr, indice) => {
+        tr.querySelector('.item-numero').value = indice + 1;
+      });
+    }
+
+    function obterItens() {
+      return Array.from(document.querySelectorAll('#itensBody tr')).map((tr, indice) => ({
+        item: tr.querySelector('.item-numero')?.value || String(indice + 1),
+        descricao: tr.querySelector('.item-descricao')?.value.trim() || '',
+        quantidade: tr.querySelector('.item-quantidade')?.value || '',
+        unidade: tr.querySelector('.item-unidade')?.value || 'UN'
+      })).filter(item => item.descricao || item.quantidade);
+    }
+
+    function atualizarResumo() {
+      setText('miniNumero', getValue('numeroPedido') || 'PM-000001');
+      setText('miniItens', String(obterItens().length));
+      setText('miniPrioridade', getValue('prioridade') || 'NORMAL');
+      setText('miniStatus', getValue('statusPedido') || 'PENDENTE');
+    }
+
+    function preencherPDF() {
+      setText('pdfEmpresaTopo', getValue('empresa') || 'Integra Engenharia');
+      setText('pdfObra', getValue('obra'));
+      setText('pdfSolicitante', getValue('solicitante'));
+      setText('pdfSetor', getValue('setor'));
+      setText('pdfLocalAplicacao', getValue('localAplicacao'));
+      setText('pdfDataPedido', formatarData(getValue('dataPedido')));
+      setText('pdfNumeroPedido', getValue('numeroPedido'));
+      setText('pdfPrioridade', getValue('prioridade'));
+      setText('pdfStatus', getValue('statusPedido'));
+      setText('pdfResponsavelRecebimento', getValue('responsavelRecebimento'));
+      setText('pdfLocalEntrega', getValue('localEntrega'));
+      setText('pdfTelefoneRecebimento', getValue('telefoneRecebimento'));
+      setText('pdfObservacoes', getValue('observacoes'));
+
+      const corpo = document.getElementById('pdfItensBody');
+      corpo.innerHTML = '';
+      const itens = obterItens();
+      const linhas = [...itens];
+      while (linhas.length < 10) linhas.push({ item: '', descricao: '', quantidade: '', unidade: '' });
+      linhas.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="center">${item.item}</td><td>${item.descricao}</td><td class="center">${item.quantidade}</td><td class="center">${item.unidade}</td>`;
+        corpo.appendChild(tr);
+      });
+    }
+
+    function exportarPDF() {
+      preencherPDF();
+      setTimeout(() => window.print(), 120);
+    }
+
+    function gerarTextoWhatsApp() {
+      const itens = obterItens();
+      let texto = '*PEDIDO DE MATERIAIS – INTEGRA ENGENHARIA*
+';
+      texto += '--------------------------------
+';
+      texto += `*Nº do Pedido:* ${getValue('numeroPedido') || '-'}
+`;
+      texto += `*Data:* ${formatarData(getValue('dataPedido'))}
+`;
+      texto += `*Obra:* ${getValue('obra') || '-'}
+`;
+      texto += `*Solicitante:* ${getValue('solicitante') || '-'}
+`;
+      texto += `*Prioridade:* ${getValue('prioridade') || '-'}
+`;
+      texto += `*Status:* ${getValue('statusPedido') || '-'}
+
+`;
+      texto += '*LOCAL DE APLICAÇÃO*
+';
+      texto += `Setor: ${getValue('setor') || '-'}
+`;
+      texto += `Local: ${getValue('localAplicacao') || '-'}
+
+`;
+      texto += '*ENTREGA / RECEBIMENTO*
+';
+      texto += `Responsável: ${getValue('responsavelRecebimento') || '-'}
+`;
+      texto += `Local de entrega: ${getValue('localEntrega') || '-'}
+`;
+      texto += `Telefone: ${getValue('telefoneRecebimento') || '-'}
+
+`;
+      texto += '*MATERIAIS SOLICITADOS*
+';
+      if (!itens.length) {
+        texto += 'Nenhum item informado.
+';
+      } else {
+        itens.forEach((item, indice) => {
+          texto += `${indice + 1}. ${item.descricao || '-'} – Qtd.: ${item.quantidade || '-'} ${item.unidade}
+`;
+        });
+      }
+      const observacoes = getValue('observacoes');
+      if (observacoes) texto += `
+*OBSERVAÇÕES / INSTRUÇÕES*
+${observacoes}
+`;
+      texto += '
+Solicito providências para atendimento deste pedido.';
+      document.getElementById('textoWhatsApp').value = texto;
+      return texto;
+    }
+
+    async function copiarWhatsApp() {
+      const texto = document.getElementById('textoWhatsApp').value || gerarTextoWhatsApp();
+      try {
+        await navigator.clipboard.writeText(texto);
+        alert('Texto copiado para a área de transferência.');
+      } catch (erro) {
+        const campo = document.getElementById('textoWhatsApp');
+        campo.focus(); campo.select(); document.execCommand('copy');
+        alert('Texto selecionado. Caso necessário, utilize CTRL+C.');
+      }
+    }
+
+    function abrirWhatsApp() {
+      const texto = document.getElementById('textoWhatsApp').value || gerarTextoWhatsApp();
+      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+    }
+
+    function limparFormulario() {
+      if (!confirm('Deseja limpar o formulário? O número atual do pedido será mantido.')) return;
+      const numero = getValue('numeroPedido');
+      document.querySelectorAll('input, textarea').forEach(campo => { if (campo.id !== 'numeroPedido') campo.value = ''; });
+      document.getElementById('numeroPedido').value = numero;
+      document.getElementById('empresa').value = 'Integra Engenharia';
+      document.getElementById('prioridade').value = 'NORMAL';
+      document.getElementById('statusPedido').value = 'PENDENTE';
+      document.getElementById('textoWhatsApp').value = '';
+      limparListaImportacao();
+      document.getElementById('itensBody').innerHTML = '';
+      definirDataAtual();
+      adicionarItem(); adicionarItem(); adicionarItem();
+      atualizarResumo();
+    }
+
+    document.addEventListener('input', atualizarResumo);
+    document.addEventListener('change', atualizarResumo);
+    window.addEventListener('DOMContentLoaded', () => {
+      iniciarNumeroPedido();
+      definirDataAtual();
+      adicionarItem(); adicionarItem(); adicionarItem();
+      atualizarResumo();
+    });
+  </script>
+</body>
+</html>
