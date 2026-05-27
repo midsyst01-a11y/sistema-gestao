@@ -1,0 +1,5154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Cronograma</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; color: #1f2937; }
+    .container { width: 100%; max-width: 1750px; margin: 10px auto; padding: 10px; }
+    .card { background: #ffffff; border-radius: 14px; padding: 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
+    .titulo-painel { margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #f97316; letter-spacing: 0.3px; text-transform: uppercase; }
+    .topo, .topo-secundario { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+    input[type="file"], select, input[type="text"], input[type="date"] {
+      padding: 8px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; font-size: 12px; min-height: 38px;
+    }
+    .campo-data { min-width: 170px; }
+    .campo-prazo { min-width: 180px; }
+    .rotulo-inline { font-size: 12px; font-weight: 700; color: #374151; margin-right: 2px; }
+    button {
+      padding: 9px 14px; border: none; border-radius: 10px; background: #f97316; color: #fff; font-weight: 700; cursor: pointer; font-size: 12px; min-height: 38px;
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-secundario { background: #2563eb; }
+    .btn-limpar { background: #4b5563; }
+    .btn-excluir { background: #dc2626; padding: 7px 10px; font-size: 11px; border-radius: 8px; }
+    .btn-gerar { background: #059669; }
+    .btn-atualizar { background: #7c3aed; }
+    .btn-peso { background: #0f766e; }
+    .status { margin: 6px 0 0; font-size: 12px; color: #374151; min-height: 18px; }
+    .resumo {
+      margin-top: 8px; padding: 10px 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; font-size: 12px; color: #9a3412; font-weight: 700;
+    }
+    .tabela-wrap {
+      overflow: auto; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; margin-top: 12px; width: 100%; -webkit-overflow-scrolling: touch;
+    }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1100px; }
+    th, td {
+      padding: 6px 6px; border-bottom: 1px solid #e5e7eb; text-align: left; font-size: 11px; word-break: break-word; overflow-wrap: anywhere; vertical-align: middle;
+    }
+    tbody tr:hover { background: #fff7ed; }
+    .vazio { padding: 30px; text-align: center; color: #6b7280; font-size: 14px; }
+    .linha-meta td { background: #f97316; color: #fff; font-weight: 700; border-bottom: 1px solid #ea580c; font-size: 12px; }
+    .meta-inline { display: flex; align-items: center; gap: 6px; width: 100%; }
+    .meta-rotulo { font-weight: 800; color: #fff; text-transform: uppercase; white-space: nowrap; flex: 0 0 auto; }
+    .meta-valor {
+      background: rgba(255,255,255,0.98); color: #111827; border: 1px solid #fed7aa; border-radius: 6px; padding: 4px 6px; font-size: 11px; font-weight: 700; display: inline-block; max-width: 100%;
+    }
+    .meta-valor-obra { width: 50ch; min-width: 50ch; max-width: 50ch; }
+    .meta-valor-empresa { width: 30ch; min-width: 30ch; max-width: 30ch; }
+    .linha-cabecalho td { background: #fff7ed; color: #6b7280; font-weight: 700; }
+    .col-editavel { background: #fffaf5; }
+    .col-peso { background: #ecfeff; font-weight: 700; }
+    .campo-editavel, .campo-select {
+      width: 100%; min-width: 0; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; font-size: 11px; color: #111827; display: block;
+    }
+    .campo-editavel:focus, .campo-select:focus, .meta-valor:focus, .campo-data:focus, .campo-prazo:focus {
+      outline: none; border-color: #f97316; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.12);
+    }
+    .largura-setor { width: 10%; }
+    .largura-local { width: 12%; }
+    .largura-atividade { width: 28%; }
+    .largura-editavel { width: 8.3%; }
+
+    @media (max-width: 1024px) {
+      .container { padding: 8px; }
+      .card { padding: 12px; }
+      .titulo-painel { font-size: 22px; }
+      .topo, .topo-secundario { align-items: stretch; }
+      .topo > *, .topo-secundario > * { flex: 1 1 220px; }
+      .topo .btn-excluir { flex: 1 1 140px; }
+    }
+
+    @media (max-width: 768px) {
+      .container { margin: 0; padding: 6px; }
+      .card { border-radius: 10px; padding: 10px; }
+      .titulo-painel { font-size: 18px; margin-bottom: 10px; }
+      .topo, .topo-secundario { gap: 6px; }
+      .topo > *, .topo-secundario > * { flex: 1 1 100%; width: 100%; }
+      .rotulo-inline { width: 100%; margin-top: 4px; margin-bottom: -2px; }
+      input[type="file"], select, input[type="text"], input[type="date"], button { width: 100%; font-size: 12px; }
+      .btn-excluir { padding: 9px 14px; font-size: 12px; }
+      .meta-inline { flex-direction: column; align-items: flex-start; }
+      .meta-valor-obra, .meta-valor-empresa { width: 100%; min-width: 100%; max-width: 100%; }
+      .status, .resumo { font-size: 11px; }
+      th, td { font-size: 10px; padding: 5px 5px; }
+    }
+  
+    /* ===== LAYOUT PREMIUM INTEGRA - TOPO ===== */
+    :root {
+      --integra-orange: #ff6b00;
+      --integra-orange-2: #ff8a1f;
+      --integra-dark: #070b10;
+      --integra-dark-2: #111827;
+      --integra-panel: rgba(9, 14, 20, 0.92);
+      --integra-line: rgba(255, 255, 255, 0.14);
+      --integra-text: #f8fafc;
+      --integra-muted: #cbd5e1;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 74% 8%, rgba(255, 107, 0, 0.22), transparent 24%),
+        radial-gradient(circle at 16% 0%, rgba(255, 107, 0, 0.13), transparent 22%),
+        linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    }
+
+    .container {
+      max-width: 1880px;
+      padding: 10px;
+    }
+
+    .card {
+      padding: 0;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 18px 46px rgba(15, 23, 42, 0.16);
+      background: #ffffff;
+    }
+
+    .integra-shell {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 270px;
+      background:
+        linear-gradient(105deg, rgba(7, 11, 16, 0.98) 0%, rgba(15, 23, 42, 0.97) 46%, rgba(52, 28, 12, 0.94) 100%);
+      color: var(--integra-text);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .integra-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.025) 48%, transparent 100%),
+        repeating-linear-gradient(115deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 38px);
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    .integra-sidebar {
+      position: relative;
+      z-index: 1;
+      padding: 18px 18px 20px;
+      border-right: 1px solid rgba(255, 255, 255, 0.13);
+      background: linear-gradient(180deg, rgba(0,0,0,0.28), rgba(0,0,0,0.12));
+    }
+
+    .integra-logo {
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+    }
+
+    .integra-logo span {
+      color: var(--integra-orange);
+    }
+
+    .integra-sub {
+      color: #f3f4f6;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .integra-cnpj {
+      color: var(--integra-muted);
+      font-size: 11px;
+      margin-bottom: 18px;
+    }
+
+    .side-pill {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 11px 12px;
+      border-radius: 11px;
+      color: #e5e7eb;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 7px;
+      border: 1px solid transparent;
+    }
+
+    .side-pill.active {
+      background: linear-gradient(90deg, rgba(255, 107, 0, 0.95), rgba(255, 107, 0, 0.25));
+      border-color: rgba(255, 138, 31, 0.45);
+      color: #ffffff;
+      box-shadow: 0 10px 24px rgba(255, 107, 0, 0.18);
+    }
+
+    .integra-sidebar .side-pill {
+      width: 100%;
+      text-decoration: none !important;
+    }
+
+    .integra-sidebar .side-pill-link:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.16);
+      color: #ffffff;
+    }
+
+    .side-icon {
+      display: inline-flex;
+      width: 26px;
+      height: 26px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      color: #ffffff;
+      font-size: 14px;
+    }
+
+    .integra-version {
+      margin-top: 16px;
+      width: fit-content;
+      padding: 7px 11px;
+      border-radius: 9px;
+      border: 1px solid rgba(255, 107, 0, 0.65);
+      color: #ffb86b;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .integra-hero {
+      position: relative;
+      z-index: 1;
+      padding: 20px 24px 22px;
+      min-width: 0;
+    }
+
+    .hero-topbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .hero-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 11px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #f8fafc;
+      font-size: 12px;
+      font-weight: 700;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-chip select,
+    .hero-chip input {
+      background: transparent !important;
+      color: #ffffff !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      min-height: auto !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+    }
+
+    .hero-chip select option {
+      color: #111827;
+    }
+
+    .hero-kicker {
+      color: var(--integra-orange-2);
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .hero-title {
+      margin: 0;
+      max-width: 820px;
+      font-size: clamp(34px, 4.6vw, 64px);
+      line-height: 0.98;
+      font-weight: 950;
+      letter-spacing: -1.8px;
+      text-transform: uppercase;
+      color: #ffffff;
+      text-shadow: 0 16px 36px rgba(0,0,0,0.35);
+    }
+
+    .hero-title span {
+      display: block;
+      color: var(--integra-orange);
+    }
+
+    .hero-line {
+      width: 70px;
+      height: 4px;
+      margin: 20px 0 14px;
+      border-radius: 999px;
+      background: var(--integra-orange);
+      box-shadow: 0 0 20px rgba(255,107,0,0.65);
+    }
+
+    .hero-desc {
+      margin: 0;
+      max-width: 620px;
+      color: #d1d5db;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .metric-grid-premium {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+      max-width: 760px;
+    }
+
+    .metric-premium {
+      border-radius: 15px;
+      padding: 13px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(10px);
+    }
+
+    .metric-premium small {
+      display: block;
+      color: #ffcf9f;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.55px;
+      margin-bottom: 7px;
+    }
+
+    .metric-premium strong {
+      display: block;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .metric-premium span {
+      display: block;
+      color: #cbd5e1;
+      font-size: 10px;
+      margin-top: 5px;
+    }
+
+    .toolbar-premium {
+      margin: 14px 16px 0;
+      padding: 13px;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 24px rgba(15,23,42,0.06);
+    }
+
+    .toolbar-title-premium {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #1f2937;
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 11px;
+    }
+
+    .toolbar-title-premium::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--integra-orange);
+      box-shadow: 0 0 0 5px rgba(255,107,0,0.14);
+    }
+
+    .topo,
+    .topo-secundario {
+      gap: 7px;
+      margin-bottom: 0;
+    }
+
+    .topo {
+      padding-bottom: 10px;
+      border-bottom: 1px dashed #cbd5e1;
+    }
+
+    .topo-secundario {
+      padding-top: 10px;
+    }
+
+    input[type="file"], select, input[type="text"], input[type="date"] {
+      border-radius: 10px;
+      min-height: 35px;
+      font-size: 12px;
+      border-color: #cbd5e1;
+      background: #ffffff;
+    }
+
+    button {
+      min-height: 35px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16);
+    }
+
+    .btn-excluir { background: #991b1b; font-size: 10px; }
+    .btn-secundario { background: #1d4ed8; }
+    .btn-limpar { background: #374151; }
+    .btn-gerar { background: #047857; }
+    .btn-atualizar { background: #6d28d9; }
+    .btn-peso { background: #0f766e; }
+
+    .status {
+      margin: 10px 18px 0;
+    }
+
+    .resumo {
+      margin-left: 18px;
+      margin-right: 18px;
+      width: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      background: #fff7ed;
+      border-color: #fdba74;
+      color: #9a3412;
+      padding: 9px 14px;
+    }
+
+    .resumo::before {
+      content: "●";
+      color: var(--integra-orange);
+      font-size: 12px;
+    }
+
+    .tabela-wrap {
+      margin-left: 16px;
+      margin-right: 16px;
+      margin-bottom: 16px;
+      width: calc(100% - 32px);
+    }
+
+    @media (max-width: 1100px) {
+      .integra-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .integra-sidebar {
+        display: none;
+      }
+
+      .hero-topbar {
+        justify-content: flex-start;
+      }
+
+      .metric-grid-premium {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 6px; }
+      .card { border-radius: 14px; }
+
+      .integra-hero {
+        padding: 16px;
+      }
+
+      .hero-topbar {
+        gap: 7px;
+        margin-bottom: 18px;
+      }
+
+      .hero-chip {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .hero-title {
+        font-size: 34px;
+        letter-spacing: -0.8px;
+      }
+
+      .hero-desc {
+        font-size: 13px;
+      }
+
+      .metric-grid-premium {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar-premium {
+        margin: 10px;
+        padding: 10px;
+      }
+
+      .topo > *,
+      .topo-secundario > * {
+        flex: 1 1 100%;
+        width: 100%;
+      }
+
+      .rotulo-inline {
+        width: 100%;
+        margin-top: 4px;
+        margin-bottom: -2px;
+      }
+
+      .status,
+      .resumo {
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+
+      .resumo {
+        width: calc(100% - 20px);
+        justify-content: center;
+        border-radius: 12px;
+      }
+
+      .tabela-wrap {
+        margin-left: 10px;
+        margin-right: 10px;
+        width: calc(100% - 20px);
+      }
+    }
+
+  
+    /* Oculta status e resumo antigo abaixo do menu */
+    #status,
+    #resumoGeral {
+      display: none !important;
+    }
+
+  
+    /* Centraliza a segunda linha de comandos */
+    .toolbar-premium .topo-secundario {
+      justify-content: center !important;
+      align-items: center !important;
+      width: 100%;
+    }
+
+    .toolbar-premium .topo-secundario .rotulo-inline {
+      flex: 0 0 auto;
+    }
+
+    .toolbar-premium .topo-secundario input,
+    .toolbar-premium .topo-secundario select {
+      flex: 0 0 auto;
+    }
+
+    .toolbar-premium .topo-secundario button {
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .toolbar-premium .topo-secundario {
+        justify-content: stretch !important;
+      }
+
+      .toolbar-premium .topo-secundario .rotulo-inline,
+      .toolbar-premium .topo-secundario input,
+      .toolbar-premium .topo-secundario select,
+      .toolbar-premium .topo-secundario button {
+        flex: 1 1 100%;
+      }
+    }
+
+  
+    /* Ajuste do cabeçalho da planilha */
+    .tabela-wrap {
+      width: calc(100% - 32px) !important;
+      max-width: calc(100% - 32px) !important;
+    }
+
+    .tabela-wrap table {
+      width: 100% !important;
+      min-width: 100% !important;
+      table-layout: fixed !important;
+    }
+
+    .linha-meta td {
+      background: #e5e7eb !important;
+      color: #111827 !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+      padding: 12px 8px !important;
+      min-height: 58px !important;
+      height: 58px !important;
+      font-size: 12px !important;
+      font-weight: 800 !important;
+    }
+
+    .linha-meta .meta-rotulo {
+      color: #111827 !important;
+      font-weight: 900 !important;
+    }
+
+    .linha-meta .meta-valor {
+      background: #ffffff !important;
+      color: #111827 !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08) !important;
+      min-height: 38px !important;
+      padding: 8px 10px !important;
+      font-size: 12px !important;
+    }
+
+    .linha-cabecalho td {
+      background: #f3f4f6 !important;
+      color: #4b5563 !important;
+      border-bottom: 1px solid #d1d5db !important;
+      padding: 10px 8px !important;
+      font-size: 12px !important;
+      font-weight: 900 !important;
+      text-transform: uppercase !important;
+    }
+
+    .meta-inline {
+      min-height: 38px !important;
+    }
+
+    @media (max-width: 768px) {
+      .tabela-wrap {
+        width: calc(100% - 20px) !important;
+        max-width: calc(100% - 20px) !important;
+      }
+
+      .tabela-wrap table {
+        min-width: 1100px !important;
+      }
+
+      .linha-meta td {
+        height: auto !important;
+        min-height: 52px !important;
+        padding: 10px 7px !important;
+      }
+    }
+
+  
+    /* Status no menu superior */
+    #status.status-topo {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 35px !important;
+      margin: 0 4px !important;
+      padding: 7px 12px !important;
+      border-radius: 999px !important;
+      background: #ecfdf5 !important;
+      border: 1px solid #86efac !important;
+      color: #047857 !important;
+      font-size: 12px !important;
+      font-weight: 800 !important;
+      white-space: nowrap !important;
+      flex: 0 0 auto !important;
+    }
+
+    #status.status-topo:empty {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      #status.status-topo {
+        width: 100% !important;
+        white-space: normal !important;
+        border-radius: 12px !important;
+      }
+    }
+
+  
+    /* Status acima dos botões online */
+    .grupo-online {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .grupo-online-botoes {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: nowrap;
+    }
+
+    #status.status-online {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 24px !important;
+      margin: 0 !important;
+      padding: 4px 12px !important;
+      border-radius: 999px !important;
+      background: #ecfdf5 !important;
+      border: 1px solid #86efac !important;
+      color: #047857 !important;
+      font-size: 12px !important;
+      font-weight: 800 !important;
+      white-space: nowrap !important;
+      width: fit-content !important;
+    }
+
+    #status.status-online:empty {
+      visibility: hidden !important;
+    }
+
+    @media (max-width: 768px) {
+      .grupo-online {
+        width: 100%;
+      }
+
+      .grupo-online-botoes {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      #status.status-online {
+        width: 100% !important;
+        white-space: normal !important;
+        border-radius: 12px !important;
+      }
+    }
+
+  
+    /* Corrige alinhamento do grupo online com o campo Escolher Arquivo */
+    .toolbar-premium .topo {
+      align-items: flex-end !important;
+    }
+
+    .grupo-online {
+      position: relative !important;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: flex-end !important;
+      justify-content: flex-start !important;
+      gap: 7px !important;
+      padding-top: 26px !important;
+      flex: 0 0 auto !important;
+    }
+
+    .grupo-online-botoes {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 7px !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      flex-wrap: nowrap !important;
+    }
+
+    #status.status-online {
+      position: absolute !important;
+      top: 0 !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      min-height: 22px !important;
+      height: 22px !important;
+      padding: 3px 12px !important;
+      margin: 0 !important;
+      border-radius: 999px !important;
+      background: #ecfdf5 !important;
+      border: 1px solid #86efac !important;
+      color: #047857 !important;
+      font-size: 12px !important;
+      font-weight: 800 !important;
+      white-space: nowrap !important;
+      width: max-content !important;
+      max-width: 520px !important;
+      z-index: 2 !important;
+    }
+
+    #status.status-online:empty {
+      visibility: hidden !important;
+    }
+
+    @media (max-width: 768px) {
+      .grupo-online {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding-top: 28px !important;
+      }
+
+      .grupo-online-botoes {
+        width: 100% !important;
+        flex-direction: column !important;
+      }
+
+      #status.status-online {
+        left: 0 !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        white-space: normal !important;
+        border-radius: 12px !important;
+        text-align: center !important;
+      }
+    }
+
+  
+    /* Indicador de previsto e situação do cronograma */
+    .data-previsto-mini {
+      margin-left: 6px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.14);
+      color: #86efac;
+      border: 1px solid rgba(134, 239, 172, 0.35);
+      font-style: normal;
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: 0.3px;
+    }
+
+    .status-cronograma-mini {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: fit-content;
+      min-height: 34px;
+      margin-top: 12px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #f8fafc;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+    }
+
+    .status-cronograma-mini strong {
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 0.35px;
+      white-space: nowrap;
+    }
+
+    .status-cronograma-mini small {
+      font-size: 10px;
+      color: #cbd5e1;
+      white-space: nowrap;
+    }
+
+    .status-dot-mini {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.16);
+    }
+
+    .status-cronograma-mini.atrasado {
+      border-color: rgba(248, 113, 113, 0.42);
+      background: rgba(127, 29, 29, 0.28);
+    }
+
+    .status-cronograma-mini.atrasado .status-dot-mini {
+      background: #ef4444;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18);
+    }
+
+    .status-cronograma-mini.adiantado {
+      border-color: rgba(96, 165, 250, 0.42);
+      background: rgba(30, 64, 175, 0.25);
+    }
+
+    .status-cronograma-mini.adiantado .status-dot-mini {
+      background: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18);
+    }
+
+    .status-cronograma-mini.em-dia {
+      border-color: rgba(134, 239, 172, 0.42);
+      background: rgba(20, 83, 45, 0.25);
+    }
+
+    @media (min-width: 1101px) {
+      .status-cronograma-mini {
+        margin-left: auto;
+        margin-right: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .status-cronograma-mini {
+        width: 100%;
+      }
+    }
+
+  
+    .btn-extrato {
+      background: #f97316 !important;
+      color: #ffffff !important;
+    }
+
+  
+    .btn-extrato {
+      background: #f97316 !important;
+      color: #ffffff !important;
+    }
+
+    .modal-extrato-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.62);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 18px;
+    }
+
+    .modal-extrato-backdrop.ativo {
+      display: flex;
+    }
+
+    .modal-extrato {
+      width: min(460px, 100%);
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.35);
+      overflow: hidden;
+    }
+
+    .modal-extrato-header {
+      padding: 14px 16px;
+      background: #111827;
+      color: #ffffff;
+    }
+
+    .modal-extrato-header h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .modal-extrato-body {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .modal-extrato-grupo {
+      display: grid;
+      gap: 6px;
+    }
+
+    .modal-extrato-grupo label {
+      font-size: 11px;
+      font-weight: 900;
+      color: #374151;
+      text-transform: uppercase;
+    }
+
+    .modal-extrato-grupo select {
+      width: 100%;
+      min-height: 38px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .modal-extrato-opcoes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .modal-extrato-opcao {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #111827;
+      cursor: pointer;
+      background: #f9fafb;
+    }
+
+    .modal-extrato-opcao input {
+      accent-color: #f97316;
+    }
+
+    .modal-extrato-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    .btn-modal-cancelar {
+      background: #4b5563 !important;
+    }
+
+    .btn-modal-gerar {
+      background: #f97316 !important;
+    }
+
+  
+    .btn-excel {
+      background: #16a34a !important;
+      color: #ffffff !important;
+    }
+
+  
+    
+
+  
+    /* Layout corrigido da planilha: leitura melhor e campos editáveis */
+    .tabela-wrap {
+      padding: 12px !important;
+      overflow-x: auto !important;
+      border-radius: 14px !important;
+    }
+
+    .tabela-wrap table {
+      width: 100% !important;
+      min-width: 1280px !important;
+      border-collapse: collapse !important;
+      table-layout: fixed !important;
+      font-size: 12px !important;
+    }
+
+    .tabela-wrap td,
+    .tabela-wrap th {
+      padding: 8px 8px !important;
+      line-height: 1.25 !important;
+      vertical-align: middle !important;
+      border-bottom: 1px solid #e5e7eb !important;
+      overflow-wrap: break-word !important;
+    }
+
+    .linha-meta td {
+      background: #e5e7eb !important;
+      height: 50px !important;
+      min-height: 50px !important;
+      padding: 9px 8px !important;
+      font-size: 12px !important;
+    }
+
+    .linha-meta .meta-rotulo,
+    .linha-meta strong {
+      font-size: 12px !important;
+      font-weight: 900 !important;
+      letter-spacing: 0.2px !important;
+      color: #0f172a !important;
+    }
+
+    .linha-meta .meta-valor,
+    .meta-inline {
+      min-height: 34px !important;
+      padding: 7px 10px !important;
+      font-size: 12px !important;
+      border-radius: 9px !important;
+      background: #ffffff !important;
+    }
+
+    .linha-cabecalho td,
+    .linha-cabecalho th {
+      background: #f3f4f6 !important;
+      color: #334155 !important;
+      font-size: 11px !important;
+      font-weight: 900 !important;
+      letter-spacing: 0.2px !important;
+      padding: 9px 8px !important;
+      text-transform: uppercase !important;
+      white-space: normal !important;
+      line-height: 1.15 !important;
+    }
+
+    .tabela-wrap input,
+    .tabela-wrap select {
+      width: 100% !important;
+      min-width: 96px !important;
+      height: 36px !important;
+      min-height: 36px !important;
+      padding: 6px 10px !important;
+      border-radius: 9px !important;
+      font-size: 12px !important;
+      line-height: 1.15 !important;
+      border: 1px solid #cbd5e1 !important;
+      background-color: #ffffff !important;
+      color: #020617 !important;
+      box-shadow: none !important;
+      pointer-events: auto !important;
+      opacity: 1 !important;
+      cursor: pointer !important;
+      position: relative !important;
+      z-index: 2 !important;
+    }
+
+    .tabela-wrap input[type="text"],
+    .tabela-wrap input[type="date"] {
+      cursor: text !important;
+    }
+
+    .tabela-wrap select {
+      appearance: auto !important;
+      -webkit-appearance: menulist !important;
+    }
+
+    .tabela-wrap tr:hover {
+      background: #f8fafc !important;
+    }
+
+    .tabela-wrap td:nth-child(1),
+    .tabela-wrap th:nth-child(1) {
+      width: 9% !important;
+    }
+
+    .tabela-wrap td:nth-child(2),
+    .tabela-wrap th:nth-child(2) {
+      width: 11% !important;
+    }
+
+    .tabela-wrap td:nth-child(3),
+    .tabela-wrap th:nth-child(3) {
+      width: 14% !important;
+    }
+
+    .tabela-wrap td:nth-child(4),
+    .tabela-wrap th:nth-child(4) {
+      width: 25% !important;
+    }
+
+    .tabela-wrap td:nth-child(5),
+    .tabela-wrap th:nth-child(5) {
+      width: 8% !important;
+    }
+
+    .tabela-wrap td:nth-child(6),
+    .tabela-wrap th:nth-child(6) {
+      width: 8% !important;
+    }
+
+    .tabela-wrap td:nth-child(7),
+    .tabela-wrap th:nth-child(7) {
+      width: 9% !important;
+    }
+
+    .tabela-wrap td:nth-child(8),
+    .tabela-wrap th:nth-child(8) {
+      width: 8% !important;
+    }
+
+    .tabela-wrap td:nth-child(9),
+    .tabela-wrap th:nth-child(9) {
+      width: 8% !important;
+    }
+
+    .tabela-wrap td:nth-child(9) {
+      background: #ecfeff !important;
+      font-weight: 800 !important;
+      color: #475569 !important;
+    }
+
+    .tabela-wrap td:nth-child(5),
+    .tabela-wrap td:nth-child(6),
+    .tabela-wrap td:nth-child(7),
+    .tabela-wrap td:nth-child(8) {
+      background: #ffffff !important;
+    }
+
+    @media (max-width: 1100px) {
+      .tabela-wrap table {
+        min-width: 1320px !important;
+      }
+    }
+
+  
+    /* Correção final: campos da planilha sempre editáveis */
+    .tabela-wrap select,
+    .tabela-wrap input,
+    .campo-select,
+    .campo-editavel,
+    .meta-valor {
+      pointer-events: auto !important;
+      user-select: auto !important;
+      opacity: 1 !important;
+      cursor: pointer !important;
+      position: relative !important;
+      z-index: 5 !important;
+    }
+
+    .campo-editavel,
+    input[data-linha][data-coluna] {
+      cursor: text !important;
+    }
+
+    .col-editavel {
+      position: relative !important;
+      z-index: 4 !important;
+    }
+
+  
+    /* =========================================================
+       NOVA VISTA NORMAL DA PLANILHA
+       Formato de tabela limpo, profissional e editável.
+       ========================================================= */
+
+    .tabela-wrap {
+      padding: 14px !important;
+      overflow-x: auto !important;
+      background: #ffffff !important;
+      border-radius: 16px !important;
+      border: 1px solid #e5e7eb !important;
+    }
+
+    .tabela-wrap table {
+      width: 100% !important;
+      min-width: 1380px !important;
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+      table-layout: fixed !important;
+      font-size: 12px !important;
+      background: #ffffff !important;
+    }
+
+    .tabela-wrap tr {
+      background: #ffffff !important;
+    }
+
+    .tabela-wrap tr:nth-child(even):not(.linha-meta):not(.linha-cabecalho) {
+      background: #fbfdff !important;
+    }
+
+    .tabela-wrap tr:hover:not(.linha-meta):not(.linha-cabecalho) {
+      background: #f8fafc !important;
+    }
+
+    .tabela-wrap td,
+    .tabela-wrap th {
+      padding: 8px 9px !important;
+      line-height: 1.25 !important;
+      vertical-align: middle !important;
+      border-bottom: 1px solid #e5e7eb !important;
+      color: #334155 !important;
+      overflow: visible !important;
+      word-break: normal !important;
+      overflow-wrap: break-word !important;
+    }
+
+    /* Cabeçalho superior OBRA / EMPRESA */
+    .linha-meta td {
+      background: #e5e7eb !important;
+      height: 48px !important;
+      min-height: 48px !important;
+      padding: 9px 10px !important;
+      color: #0f172a !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+    }
+
+    .linha-meta strong,
+    .linha-meta .meta-rotulo {
+      font-size: 12px !important;
+      font-weight: 900 !important;
+      color: #0f172a !important;
+      letter-spacing: 0.15px !important;
+      text-transform: uppercase !important;
+    }
+
+    .linha-meta .meta-valor,
+    .meta-inline {
+      display: inline-flex !important;
+      align-items: center !important;
+      min-height: 32px !important;
+      padding: 6px 9px !important;
+      border-radius: 8px !important;
+      background: #ffffff !important;
+      color: #0f172a !important;
+      font-size: 12px !important;
+      font-weight: 800 !important;
+      line-height: 1.15 !important;
+    }
+
+    /* Cabeçalho das colunas */
+    .linha-cabecalho td,
+    .linha-cabecalho th {
+      background: #f1f5f9 !important;
+      color: #1e293b !important;
+      height: 40px !important;
+      min-height: 40px !important;
+      padding: 8px 9px !important;
+      font-size: 11px !important;
+      font-weight: 900 !important;
+      letter-spacing: 0.2px !important;
+      text-transform: uppercase !important;
+      line-height: 1.15 !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+      white-space: normal !important;
+    }
+
+    /* Larguras fixas e equilibradas */
+    .tabela-wrap tr > td:nth-child(1),
+    .tabela-wrap tr > th:nth-child(1) {
+      width: 8% !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(2),
+    .tabela-wrap tr > th:nth-child(2) {
+      width: 10% !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(3),
+    .tabela-wrap tr > th:nth-child(3) {
+      width: 13% !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(4),
+    .tabela-wrap tr > th:nth-child(4) {
+      width: 30% !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(5),
+    .tabela-wrap tr > th:nth-child(5) {
+      width: 8% !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(6),
+    .tabela-wrap tr > th:nth-child(6) {
+      width: 8% !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(7),
+    .tabela-wrap tr > th:nth-child(7) {
+      width: 9% !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(8),
+    .tabela-wrap tr > th:nth-child(8) {
+      width: 8% !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(9),
+    .tabela-wrap tr > th:nth-child(9) {
+      width: 6% !important;
+    }
+
+    /* Coluna atividade com leitura melhor */
+    .tabela-wrap tr > td:nth-child(4) {
+      font-size: 12px !important;
+      color: #334155 !important;
+      line-height: 1.32 !important;
+    }
+
+    /* Campos editáveis */
+    .tabela-wrap select,
+    .tabela-wrap input {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 88px !important;
+      height: 34px !important;
+      min-height: 34px !important;
+      padding: 6px 9px !important;
+      border-radius: 9px !important;
+      border: 1px solid #cbd5e1 !important;
+      background: #ffffff !important;
+      color: #020617 !important;
+      font-size: 12px !important;
+      line-height: 1.15 !important;
+      box-shadow: none !important;
+      pointer-events: auto !important;
+      user-select: auto !important;
+      opacity: 1 !important;
+      cursor: pointer !important;
+      position: relative !important;
+      z-index: 20 !important;
+    }
+
+    .tabela-wrap input[type="text"],
+    .tabela-wrap input[type="date"] {
+      cursor: text !important;
+    }
+
+    .tabela-wrap select {
+      appearance: auto !important;
+      -webkit-appearance: menulist !important;
+    }
+
+    /* Editáveis com fundo branco */
+    .tabela-wrap tr > td:nth-child(5),
+    .tabela-wrap tr > td:nth-child(6),
+    .tabela-wrap tr > td:nth-child(7),
+    .tabela-wrap tr > td:nth-child(8) {
+      background: #ffffff !important;
+      overflow: visible !important;
+    }
+
+    /* Peso automático */
+    .tabela-wrap tr > td:nth-child(9) {
+      background: #e9fbfc !important;
+      color: #475569 !important;
+      font-weight: 900 !important;
+      white-space: nowrap !important;
+      text-align: left !important;
+    }
+
+    /* Deixar as primeiras colunas mais discretas quando a informação vier em branco */
+    .tabela-wrap tr > td:nth-child(1),
+    .tabela-wrap tr > td:nth-child(2),
+    .tabela-wrap tr > td:nth-child(3) {
+      font-size: 11.5px !important;
+      color: #475569 !important;
+    }
+
+    @media (max-width: 1200px) {
+      .tabela-wrap table {
+        min-width: 1380px !important;
+      }
+    }
+
+  
+    /* =========================================================
+       CORREÇÃO FINAL SOMENTE DE CORES / APARÊNCIA DA PLANILHA
+       Não altera lógica, eventos ou edição dos campos.
+       ========================================================= */
+
+    .tabela-wrap {
+      background: #ffffff !important;
+    }
+
+    .tabela-wrap table {
+      background: #ffffff !important;
+    }
+
+    .tabela-wrap tr,
+    .tabela-wrap td,
+    .tabela-wrap th {
+      background-color: #ffffff !important;
+    }
+
+    .tabela-wrap tr:nth-child(even):not(.linha-meta):not(.linha-cabecalho) td {
+      background-color: #fbfdff !important;
+    }
+
+    .tabela-wrap tr:hover:not(.linha-meta):not(.linha-cabecalho) td {
+      background-color: #f8fafc !important;
+    }
+
+    /* Cabeçalho superior OBRA / EMPRESA uniforme */
+    .linha-meta td {
+      background: #e5e7eb !important;
+      color: #0f172a !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+    }
+
+    .linha-meta td * {
+      color: #0f172a !important;
+    }
+
+    /* Cabeçalho das colunas uniforme */
+    .linha-cabecalho td,
+    .linha-cabecalho th {
+      background: #f1f5f9 !important;
+      color: #1e293b !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+    }
+
+    .linha-cabecalho td *,
+    .linha-cabecalho th * {
+      color: #1e293b !important;
+    }
+
+    /* Remover qualquer faixa azul/clara quebrada nas colunas REALIZADO/PESO */
+    .tabela-wrap td:nth-child(8),
+    .tabela-wrap th:nth-child(8),
+    .tabela-wrap td:nth-child(9),
+    .tabela-wrap th:nth-child(9) {
+      background-color: inherit !important;
+    }
+
+    .linha-cabecalho td:nth-child(8),
+    .linha-cabecalho th:nth-child(8),
+    .linha-cabecalho td:nth-child(9),
+    .linha-cabecalho th:nth-child(9) {
+      background: #f1f5f9 !important;
+    }
+
+    /* Peso automático discreto, sem faixa vertical */
+    .tabela-wrap tr:not(.linha-meta):not(.linha-cabecalho) > td:nth-child(9) {
+      background: transparent !important;
+      color: #475569 !important;
+      font-weight: 900 !important;
+      white-space: nowrap !important;
+    }
+
+    .tabela-wrap tr:nth-child(even):not(.linha-meta):not(.linha-cabecalho) > td:nth-child(9) {
+      background: #fbfdff !important;
+    }
+
+    .tabela-wrap tr:hover:not(.linha-meta):not(.linha-cabecalho) > td:nth-child(9) {
+      background: #f8fafc !important;
+    }
+
+    /* Campos mantidos editáveis e visíveis */
+    .tabela-wrap select,
+    .tabela-wrap input {
+      background: #ffffff !important;
+      color: #020617 !important;
+      border: 1px solid #cbd5e1 !important;
+      pointer-events: auto !important;
+      opacity: 1 !important;
+      cursor: pointer !important;
+      z-index: 10 !important;
+    }
+
+    .tabela-wrap input[type="text"],
+    .tabela-wrap input[type="date"] {
+      cursor: text !important;
+    }
+
+    /* Separar melhor REALIZADO e PESO */
+    .tabela-wrap tr > td:nth-child(8),
+    .tabela-wrap tr > th:nth-child(8) {
+      padding-right: 14px !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(9),
+    .tabela-wrap tr > th:nth-child(9) {
+      padding-left: 12px !important;
+    }
+
+    .linha-cabecalho td:nth-child(8),
+    .linha-cabecalho th:nth-child(8) {
+      border-right: 1px solid #cbd5e1 !important;
+    }
+
+    /* Evitar que REALIZADO/PESO fiquem grudados */
+    .tabela-wrap tr > td:nth-child(8),
+    .tabela-wrap tr > th:nth-child(8) {
+      width: 8.5% !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(9),
+    .tabela-wrap tr > th:nth-child(9) {
+      width: 7.5% !important;
+    }
+
+  
+    /* =========================================================
+       CORREÇÃO CIRÚRGICA - COLUNAS REALIZADO E PESO
+       Somente visual. Não altera lógica.
+       ========================================================= */
+
+    .tabela-wrap table {
+      table-layout: fixed !important;
+      min-width: 1420px !important;
+    }
+
+    /* Redistribuição de larguras para REALIZADO e PESO não ficarem grudados */
+    .tabela-wrap tr > td:nth-child(1),
+    .tabela-wrap tr > th:nth-child(1) { width: 7.5% !important; }
+
+    .tabela-wrap tr > td:nth-child(2),
+    .tabela-wrap tr > th:nth-child(2) { width: 9.5% !important; }
+
+    .tabela-wrap tr > td:nth-child(3),
+    .tabela-wrap tr > th:nth-child(3) { width: 12.5% !important; }
+
+    .tabela-wrap tr > td:nth-child(4),
+    .tabela-wrap tr > th:nth-child(4) { width: 28% !important; }
+
+    .tabela-wrap tr > td:nth-child(5),
+    .tabela-wrap tr > th:nth-child(5) { width: 8% !important; }
+
+    .tabela-wrap tr > td:nth-child(6),
+    .tabela-wrap tr > th:nth-child(6) { width: 8% !important; }
+
+    .tabela-wrap tr > td:nth-child(7),
+    .tabela-wrap tr > th:nth-child(7) { width: 9% !important; }
+
+    .tabela-wrap tr > td:nth-child(8),
+    .tabela-wrap tr > th:nth-child(8) { width: 9% !important; }
+
+    .tabela-wrap tr > td:nth-child(9),
+    .tabela-wrap tr > th:nth-child(9) { width: 8.5% !important; }
+
+    /* Remover definitivamente a faixa azul/clara do realizado */
+    .tabela-wrap tr:not(.linha-meta):not(.linha-cabecalho) > td:nth-child(8),
+    .tabela-wrap tr:not(.linha-meta):not(.linha-cabecalho) > td:nth-child(9) {
+      background-color: transparent !important;
+      background-image: none !important;
+      box-shadow: none !important;
+    }
+
+    .tabela-wrap tr:nth-child(even):not(.linha-meta):not(.linha-cabecalho) > td:nth-child(8),
+    .tabela-wrap tr:nth-child(even):not(.linha-meta):not(.linha-cabecalho) > td:nth-child(9) {
+      background-color: #fbfdff !important;
+      background-image: none !important;
+    }
+
+    .tabela-wrap tr:hover:not(.linha-meta):not(.linha-cabecalho) > td:nth-child(8),
+    .tabela-wrap tr:hover:not(.linha-meta):not(.linha-cabecalho) > td:nth-child(9) {
+      background-color: #f8fafc !important;
+      background-image: none !important;
+    }
+
+    /* Cabeçalho padronizado sem faixa azul */
+    .linha-cabecalho td:nth-child(8),
+    .linha-cabecalho th:nth-child(8),
+    .linha-cabecalho td:nth-child(9),
+    .linha-cabecalho th:nth-child(9) {
+      background: #f1f5f9 !important;
+      background-color: #f1f5f9 !important;
+      background-image: none !important;
+      color: #1e293b !important;
+      border-right: none !important;
+      white-space: nowrap !important;
+    }
+
+    /* Separação física entre realizado e peso */
+    .tabela-wrap tr > td:nth-child(8),
+    .tabela-wrap tr > th:nth-child(8) {
+      padding-right: 18px !important;
+      border-right: 1px solid #e5e7eb !important;
+      overflow: visible !important;
+    }
+
+    .tabela-wrap tr > td:nth-child(9),
+    .tabela-wrap tr > th:nth-child(9) {
+      padding-left: 18px !important;
+      padding-right: 10px !important;
+      overflow: visible !important;
+      white-space: nowrap !important;
+      text-align: left !important;
+      color: #475569 !important;
+      font-weight: 900 !important;
+    }
+
+    /* Campo realizado com largura segura */
+    .tabela-wrap tr > td:nth-child(8) select,
+    .tabela-wrap tr > td:nth-child(8) input {
+      width: 100% !important;
+      min-width: 96px !important;
+      max-width: 118px !important;
+      display: block !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Peso não é campo editável, deve ficar separado e legível */
+    .tabela-wrap tr > td:nth-child(9) {
+      min-width: 88px !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Corrigir qualquer cor herdada por elementos internos */
+    .tabela-wrap tr > td:nth-child(8) *,
+    .tabela-wrap tr > td:nth-child(9) * {
+      background-image: none !important;
+    }
+
+    @media (max-width: 1200px) {
+      .tabela-wrap table {
+        min-width: 1420px !important;
+      }
+    }
+
+  
+    /* =========================================================
+       NOVA VISÃO DA PLANILHA - TABELA VERDE LIMPA
+       Substitui visualmente a tabela antiga por uma tabela nova,
+       mantendo os dados e a lógica existentes.
+       ========================================================= */
+
+    .nova-planilha-view {
+      margin: 0 auto;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 12px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 16px;
+    }
+
+    .nova-planilha-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #dcfce7;
+      border: 1px solid #86efac;
+    }
+
+    .nova-meta-box {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .nova-meta-box span {
+      font-size: 12px;
+      font-weight: 900;
+      color: #14532d;
+      text-transform: uppercase;
+    }
+
+    .nova-meta-box strong {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 1px solid #bbf7d0;
+      font-size: 13px;
+      font-weight: 900;
+      color: #052e16;
+    }
+
+    .nova-planilha-table {
+      width: 100%;
+      min-width: 1320px;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+      background: #ffffff;
+      border: 1px solid #bbf7d0;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .nova-planilha-table th {
+      height: 42px;
+      padding: 8px 9px;
+      background: #dcfce7;
+      color: #14532d;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+      border-bottom: 1px solid #86efac;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .nova-planilha-table td {
+      min-height: 48px;
+      padding: 8px 9px;
+      border-bottom: 1px solid #e5e7eb;
+      color: #334155;
+      font-size: 12px;
+      line-height: 1.28;
+      vertical-align: middle;
+      background: #ffffff;
+    }
+
+    .nova-planilha-table tbody tr:nth-child(even) td {
+      background: #f8fffb;
+    }
+
+    .nova-planilha-table tbody tr:hover td {
+      background: #ecfdf5;
+    }
+
+    /* Linha ativa para facilitar edição */
+    .nova-planilha-table tbody tr.linha-selecionada td {
+      background: #dbeafe !important;
+      border-bottom-color: #93c5fd !important;
+    }
+
+    .nova-planilha-table tbody tr.linha-selecionada td:first-child {
+      box-shadow: inset 4px 0 0 #2563eb !important;
+    }
+
+    .nova-planilha-table tbody tr.linha-selecionada input,
+    .nova-planilha-table tbody tr.linha-selecionada select {
+      border-color: #60a5fa !important;
+      background: #ffffff !important;
+    }
+
+    .nova-planilha-table th:nth-child(1),
+    .nova-planilha-table td:nth-child(1) { width: 8%; }
+
+    .nova-planilha-table th:nth-child(2),
+    .nova-planilha-table td:nth-child(2) { width: 10%; }
+
+    .nova-planilha-table th:nth-child(3),
+    .nova-planilha-table td:nth-child(3) { width: 13%; }
+
+    .nova-planilha-table th:nth-child(4),
+    .nova-planilha-table td:nth-child(4) { width: 28%; }
+
+    .nova-planilha-table th:nth-child(5),
+    .nova-planilha-table td:nth-child(5) { width: 8%; }
+
+    .nova-planilha-table th:nth-child(6),
+    .nova-planilha-table td:nth-child(6) { width: 8%; }
+
+    .nova-planilha-table th:nth-child(7),
+    .nova-planilha-table td:nth-child(7) { width: 9%; }
+
+    .nova-planilha-table th:nth-child(8),
+    .nova-planilha-table td:nth-child(8) { width: 8%; }
+
+    .nova-planilha-table th:nth-child(9),
+    .nova-planilha-table td:nth-child(9) { width: 8%; }
+
+    .nova-planilha-texto {
+      font-weight: 500;
+      color: #334155;
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+
+    .nova-planilha-texto.muted {
+      color: #94a3b8;
+    }
+
+    .nova-planilha-table select,
+    .nova-planilha-table input {
+      width: 100%;
+      height: 34px;
+      min-height: 34px;
+      padding: 6px 8px;
+      border-radius: 9px;
+      border: 1px solid #86efac;
+      background: #ffffff;
+      color: #052e16;
+      font-size: 12px;
+      line-height: 1.15;
+      box-shadow: none;
+      pointer-events: auto;
+      opacity: 1;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .nova-planilha-table input[type="text"] {
+      cursor: text;
+    }
+
+    .nova-planilha-peso {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 30px;
+      padding: 6px 8px;
+      border-radius: 9px;
+      background: #dcfce7;
+      color: #14532d;
+      font-weight: 900;
+      border: 1px solid #bbf7d0;
+      white-space: nowrap;
+    }
+
+    .tabela-antiga-oculta {
+      display: none !important;
+    }
+
+    @media (max-width: 900px) {
+      .nova-planilha-meta {
+        grid-template-columns: 1fr;
+      }
+    }
+
+  
+    /* =========================================================
+       AJUSTE DA NOVA TABELA VERDE
+       Não repete informações; reduz espaço e organiza colunas.
+       ========================================================= */
+
+    .nova-planilha-table {
+      min-width: 1260px !important;
+    }
+
+    .nova-planilha-table th:nth-child(1),
+    .nova-planilha-table td:nth-child(1) { width: 7.5% !important; }
+
+    .nova-planilha-table th:nth-child(2),
+    .nova-planilha-table td:nth-child(2) { width: 9.5% !important; }
+
+    .nova-planilha-table th:nth-child(3),
+    .nova-planilha-table td:nth-child(3) { width: 12% !important; }
+
+    .nova-planilha-table th:nth-child(4),
+    .nova-planilha-table td:nth-child(4) { width: 24% !important; }
+
+    .nova-planilha-table th:nth-child(5),
+    .nova-planilha-table td:nth-child(5) { width: 8% !important; }
+
+    .nova-planilha-table th:nth-child(6),
+    .nova-planilha-table td:nth-child(6) { width: 8% !important; }
+
+    .nova-planilha-table th:nth-child(7),
+    .nova-planilha-table td:nth-child(7) { width: 8% !important; }
+
+    .nova-planilha-table th:nth-child(8),
+    .nova-planilha-table td:nth-child(8) { width: 9% !important; }
+
+    .nova-planilha-table th:nth-child(9),
+    .nova-planilha-table td:nth-child(9) { width: 14% !important; }
+
+    .nova-planilha-table td,
+    .nova-planilha-table th {
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+    }
+
+    .nova-planilha-table td:nth-child(4) {
+      padding-right: 10px !important;
+    }
+
+    .nova-planilha-table td:nth-child(5) {
+      padding-left: 8px !important;
+    }
+
+    .nova-realizado-peso-wrap {
+      display: grid;
+      grid-template-columns: minmax(86px, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .nova-realizado-peso-wrap select {
+      min-width: 86px !important;
+    }
+
+    .nova-planilha-peso {
+      min-width: 58px;
+      justify-content: center;
+      padding: 6px 8px !important;
+    }
+
+    .nova-planilha-texto.muted {
+      color: transparent !important;
+    }
+
+  
+    /* =========================================================
+       REDUÇÃO DO TAMANHO DO LAYOUT DA NOVA TABELA VERDE
+       Somente aparência. Não altera lógica.
+       ========================================================= */
+
+    .nova-planilha-view {
+      padding: 8px !important;
+      border-radius: 12px !important;
+    }
+
+    .nova-planilha-meta {
+      padding: 8px !important;
+      gap: 8px !important;
+      margin-bottom: 8px !important;
+      border-radius: 10px !important;
+    }
+
+    .nova-meta-box {
+      grid-template-columns: 62px 1fr !important;
+      gap: 6px !important;
+    }
+
+    .nova-meta-box span {
+      font-size: 10px !important;
+    }
+
+    .nova-meta-box strong {
+      min-height: 28px !important;
+      padding: 5px 8px !important;
+      border-radius: 8px !important;
+      font-size: 11px !important;
+      line-height: 1.15 !important;
+    }
+
+    .nova-planilha-table {
+      min-width: 1120px !important;
+      border-radius: 10px !important;
+      font-size: 10.5px !important;
+    }
+
+    .nova-planilha-table th {
+      height: 32px !important;
+      padding: 5px 6px !important;
+      font-size: 9.5px !important;
+      line-height: 1.05 !important;
+      letter-spacing: 0.1px !important;
+    }
+
+    .nova-planilha-table td {
+      min-height: 34px !important;
+      padding: 5px 6px !important;
+      font-size: 10.5px !important;
+      line-height: 1.18 !important;
+    }
+
+    .nova-planilha-texto {
+      font-size: 10.5px !important;
+      line-height: 1.18 !important;
+    }
+
+    .nova-planilha-table select,
+    .nova-planilha-table input {
+      height: 28px !important;
+      min-height: 28px !important;
+      padding: 4px 6px !important;
+      border-radius: 7px !important;
+      font-size: 10.5px !important;
+      line-height: 1.05 !important;
+    }
+
+    .nova-realizado-peso-wrap {
+      grid-template-columns: minmax(70px, 1fr) auto !important;
+      gap: 5px !important;
+    }
+
+    .nova-realizado-peso-wrap select {
+      min-width: 70px !important;
+    }
+
+    .nova-planilha-peso {
+      min-height: 24px !important;
+      min-width: 48px !important;
+      padding: 4px 6px !important;
+      border-radius: 7px !important;
+      font-size: 10.5px !important;
+    }
+
+    .nova-planilha-table th:nth-child(1),
+    .nova-planilha-table td:nth-child(1) { width: 7% !important; }
+
+    .nova-planilha-table th:nth-child(2),
+    .nova-planilha-table td:nth-child(2) { width: 9% !important; }
+
+    .nova-planilha-table th:nth-child(3),
+    .nova-planilha-table td:nth-child(3) { width: 11.5% !important; }
+
+    .nova-planilha-table th:nth-child(4),
+    .nova-planilha-table td:nth-child(4) { width: 25% !important; }
+
+    .nova-planilha-table th:nth-child(5),
+    .nova-planilha-table td:nth-child(5) { width: 8% !important; }
+
+    .nova-planilha-table th:nth-child(6),
+    .nova-planilha-table td:nth-child(6) { width: 7.5% !important; }
+
+    .nova-planilha-table th:nth-child(7),
+    .nova-planilha-table td:nth-child(7) { width: 7.5% !important; }
+
+    .nova-planilha-table th:nth-child(8),
+    .nova-planilha-table td:nth-child(8) { width: 8.5% !important; }
+
+    .nova-planilha-table th:nth-child(9),
+    .nova-planilha-table td:nth-child(9) { width: 16% !important; }
+
+    @media (max-width: 1200px) {
+      .nova-planilha-table {
+        min-width: 1120px !important;
+      }
+    }
+
+  
+    /* =========================================================
+       RESPONSIVO FINAL - NOVA TABELA VERDE
+       Desktop, tablet e celular. Somente aparência.
+       ========================================================= */
+
+    .nova-planilha-view {
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow-x: auto !important;
+      overflow-y: visible !important;
+      padding: 8px !important;
+      box-sizing: border-box !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+
+    .nova-planilha-meta {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+      gap: 8px !important;
+      padding: 8px !important;
+      margin-bottom: 8px !important;
+    }
+
+    .nova-meta-box {
+      grid-template-columns: 58px minmax(0, 1fr) !important;
+      gap: 6px !important;
+      min-width: 0 !important;
+    }
+
+    .nova-meta-box span {
+      font-size: 10px !important;
+      white-space: nowrap !important;
+    }
+
+    .nova-meta-box strong {
+      min-width: 0 !important;
+      min-height: 28px !important;
+      padding: 5px 8px !important;
+      font-size: 11px !important;
+      line-height: 1.15 !important;
+      overflow-wrap: anywhere !important;
+    }
+
+    .nova-planilha-table {
+      width: 100% !important;
+      min-width: 1180px !important;
+      table-layout: fixed !important;
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+    }
+
+    .nova-planilha-table th,
+    .nova-planilha-table td {
+      padding: 5px 6px !important;
+      font-size: 10.5px !important;
+      line-height: 1.15 !important;
+      box-sizing: border-box !important;
+    }
+
+    .nova-planilha-table th {
+      height: 30px !important;
+      font-size: 9.5px !important;
+      white-space: nowrap !important;
+    }
+
+    .nova-planilha-table td {
+      min-height: 34px !important;
+      height: auto !important;
+    }
+
+    .nova-planilha-texto {
+      font-size: 10.5px !important;
+      line-height: 1.18 !important;
+      max-width: 100% !important;
+      overflow-wrap: break-word !important;
+    }
+
+    .nova-planilha-table input,
+    .nova-planilha-table select {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      height: 28px !important;
+      min-height: 28px !important;
+      padding: 4px 6px !important;
+      font-size: 10.5px !important;
+      border-radius: 7px !important;
+      box-sizing: border-box !important;
+      pointer-events: auto !important;
+    }
+
+    .nova-planilha-peso {
+      width: 100% !important;
+      min-width: 0 !important;
+      min-height: 26px !important;
+      padding: 4px 6px !important;
+      border-radius: 7px !important;
+      font-size: 10.5px !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
+    }
+
+    .nova-planilha-table th:nth-child(1),
+    .nova-planilha-table td:nth-child(1) { width: 6.5% !important; }
+
+    .nova-planilha-table th:nth-child(2),
+    .nova-planilha-table td:nth-child(2) { width: 8.5% !important; }
+
+    .nova-planilha-table th:nth-child(3),
+    .nova-planilha-table td:nth-child(3) { width: 11.5% !important; }
+
+    .nova-planilha-table th:nth-child(4),
+    .nova-planilha-table td:nth-child(4) { width: 26% !important; }
+
+    .nova-planilha-table th:nth-child(5),
+    .nova-planilha-table td:nth-child(5) { width: 8% !important; }
+
+    .nova-planilha-table th:nth-child(6),
+    .nova-planilha-table td:nth-child(6) { width: 8% !important; }
+
+    .nova-planilha-table th:nth-child(7),
+    .nova-planilha-table td:nth-child(7) { width: 8% !important; }
+
+    .nova-planilha-table th:nth-child(8),
+    .nova-planilha-table td:nth-child(8) { width: 8.5% !important; }
+
+    .nova-planilha-table th:nth-child(9),
+    .nova-planilha-table td:nth-child(9) { width: 7.5% !important; }
+
+    .nova-planilha-table th:nth-child(10),
+    .nova-planilha-table td:nth-child(10) { width: 7.5% !important; }
+
+    .nova-realizado-peso-wrap {
+      display: contents !important;
+    }
+
+    @media (max-width: 1366px) {
+      .nova-planilha-table {
+        min-width: 1120px !important;
+      }
+
+      .nova-planilha-table th,
+      .nova-planilha-table td {
+        padding: 4px 5px !important;
+        font-size: 10px !important;
+      }
+
+      .nova-planilha-table input,
+      .nova-planilha-table select {
+        height: 27px !important;
+        font-size: 10px !important;
+        padding: 3px 5px !important;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .nova-planilha-view {
+        padding: 6px !important;
+      }
+
+      .nova-planilha-meta {
+        grid-template-columns: 1fr !important;
+      }
+
+      .nova-planilha-table {
+        min-width: 1040px !important;
+      }
+
+      .nova-planilha-table th,
+      .nova-planilha-table td {
+        font-size: 9.5px !important;
+      }
+
+      .nova-planilha-texto {
+        font-size: 9.5px !important;
+      }
+
+      .nova-planilha-table input,
+      .nova-planilha-table select,
+      .nova-planilha-peso {
+        height: 26px !important;
+        min-height: 26px !important;
+        font-size: 9.5px !important;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .nova-planilha-view {
+        padding: 5px !important;
+        border-radius: 10px !important;
+      }
+
+      .nova-planilha-table {
+        min-width: 980px !important;
+      }
+
+      .nova-planilha-meta {
+        padding: 6px !important;
+      }
+
+      .nova-meta-box {
+        grid-template-columns: 54px minmax(0, 1fr) !important;
+      }
+
+      .nova-meta-box span,
+      .nova-meta-box strong {
+        font-size: 9.5px !important;
+      }
+
+      .nova-planilha-table th,
+      .nova-planilha-table td {
+        padding: 4px !important;
+        font-size: 9px !important;
+      }
+
+      .nova-planilha-texto {
+        font-size: 9px !important;
+      }
+
+      .nova-planilha-table input,
+      .nova-planilha-table select,
+      .nova-planilha-peso {
+        height: 25px !important;
+        min-height: 25px !important;
+        font-size: 9px !important;
+        border-radius: 6px !important;
+      }
+    }
+
+  
+
+    /* ===== BOTÃO VOLTAR AO MENU PRINCIPAL ===== */
+    .btn-voltar-menu-principal {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 999999;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 9px 14px;
+      border-radius: 10px;
+      background: #111827;
+      color: #ffffff !important;
+      font-size: 12px;
+      font-weight: 900;
+      text-decoration: none !important;
+      border: 1px solid rgba(249, 115, 22, 0.72);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .btn-voltar-menu-principal:hover {
+      background: #f97316;
+      color: #ffffff !important;
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+      .btn-voltar-menu-principal {
+        top: 8px;
+        left: 8px;
+        min-height: 34px;
+        padding: 7px 10px;
+        font-size: 11px;
+      }
+    }
+
+
+    /* ===== PONTE COM O DASHBOARD ===== */
+    .btn-abrir-dashboard-cronograma {
+      position: fixed;
+      top: 14px;
+      left: 182px;
+      z-index: 999999;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 9px 14px;
+      border-radius: 10px;
+      background: #f97316;
+      color: #ffffff !important;
+      font-size: 12px;
+      font-weight: 900;
+      text-decoration: none !important;
+      border: 1px solid rgba(249, 115, 22, 0.9);
+      box-shadow: 0 10px 24px rgba(249, 115, 22, 0.22);
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .btn-abrir-dashboard-cronograma:hover {
+      background: #ea580c;
+      color: #ffffff !important;
+      transform: translateY(-1px);
+    }
+
+    .side-pill-link {
+      text-decoration: none !important;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .btn-abrir-dashboard-cronograma {
+        top: 8px;
+        left: 150px;
+        min-height: 34px;
+        padding: 7px 10px;
+        font-size: 11px;
+      }
+    }
+
+
+    /* ===== CONFIGURAÇÃO DA CONEXÃO GOOGLE SHEETS ===== */
+    .side-pill-button {
+      width: 100%;
+      background: transparent !important;
+      border: 1px solid transparent !important;
+      box-shadow: none !important;
+      min-height: auto !important;
+      justify-content: flex-start !important;
+      text-transform: none !important;
+      padding: 11px 12px !important;
+      font-size: 13px !important;
+      letter-spacing: normal !important;
+    }
+
+    .side-pill-button:hover {
+      background: rgba(255, 107, 0, 0.16) !important;
+      border-color: rgba(255, 138, 31, 0.36) !important;
+      transform: none !important;
+    }
+
+    .config-planilha-info {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .config-planilha-url {
+      width: 100%;
+      min-height: 42px !important;
+      padding: 9px 11px !important;
+      font-size: 12px !important;
+    }
+
+    .config-planilha-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #ecfdf5;
+      border: 1px solid #86efac;
+      color: #047857;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .config-planilha-status.sem-configuracao {
+      background: #f9fafb;
+      border-color: #d1d5db;
+      color: #4b5563;
+    }
+
+    .btn-config-restaurar {
+      background: #374151 !important;
+      margin-right: auto;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="integra-shell">
+        <aside class="integra-sidebar">
+          <div class="side-pill active"><span class="side-icon">⌂</span> Cronograma</div>
+          <a class="side-pill side-pill-link" href="../../index.html"><span class="side-icon">←</span> Menu Principal</a>
+          <a class="side-pill side-pill-link" href="../dashboard/dashboard.html" target="_blank" onclick="publicarCronogramaNoDashboard()"><span class="side-icon">↗</span> Dashboard</a>
+          <button type="button" id="btnConfigPlanilha" class="side-pill side-pill-button"><span class="side-icon">⚙</span> Configuração</button>
+        </aside>
+
+        <section class="integra-hero">
+          <div class="hero-topbar">
+            <div class="hero-chip">▣ <span>Obra:</span> <span id="heroObraTexto">Cronograma Online</span></div>
+            <div class="hero-chip">◷ <span id="heroHoraTexto">Sistema ativo</span></div>
+            <div class="hero-chip">👤 <span>Olá, Visitante</span></div>
+          </div>
+
+          <div class="hero-kicker">Bem-vindo ao sistema</div>
+          <h1 class="hero-title">Gestão de Obras <span>e Planejamento</span></h1>
+          <div class="hero-line"></div>
+          <p class="hero-desc">Sistema integrado para planejamento, acompanhamento de atividades, controle de prazos, pesos e avanço físico da obra.</p>
+
+          <div class="metric-grid-premium">
+            <div class="metric-premium">
+              <small>Realizado</small>
+              <strong id="metricRealizadoTopo">0,00%</strong>
+              <span>Execução atual</span>
+            </div>
+            <div class="metric-premium">
+              <small>Previsto <em id="metricDataPrevistoTopo" class="data-previsto-mini">--/--</em></small>
+              <strong id="metricPrevistoTopo">0,00%</strong>
+              <span>Previsão até hoje</span>
+            </div>
+            <div class="metric-premium">
+              <small>A concluir</small>
+              <strong id="metricAConcluirTopo">100,00%</strong>
+              <span>Saldo restante</span>
+            </div>
+            <div class="metric-premium">
+              <small>Atividades</small>
+              <strong id="metricAtividadesTopo">0</strong>
+              <span>Linhas carregadas</span>
+            </div>
+          </div>
+
+          <div class="status-cronograma-mini em-dia" id="statusCronogramaMini">
+            <span class="status-dot-mini"></span>
+            <strong>EM DIA</strong>
+            <small>Previsto x realizado</small>
+          </div>
+        </section>
+      </div>
+
+      <div class="toolbar-premium">
+        <div class="toolbar-title-premium">Menu operacional</div>
+
+      <div class="topo">
+        <select id="selectAba" style="min-width:260px;">
+          <option value="">Selecione a obra / aba</option>
+        </select>
+        <button id="btnExcluirAba" class="btn-excluir">EXCLUIR ABA</button>
+        <input type="text" id="nomeNovaAba" placeholder="Nome da nova aba" style="min-width:220px;" />
+        <button id="btnNovaAba" class="btn-secundario">NOVA ABA</button>
+        <input type="file" id="arquivoExcel" accept=".xlsx,.xls,.csv" />
+
+        <div class="grupo-online">
+          <div id="status" class="status status-online"></div>
+          <div class="grupo-online-botoes">
+            <button id="btnCarregar">CARREGAR ONLINE</button>
+            <button id="btnSalvar" disabled>SALVAR ONLINE</button>
+            <button id="btnLimpar" class="btn-limpar">LIMPAR PLANILHA</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="topo-secundario">
+        <span class="rotulo-inline">DATA INICIAL:</span>
+        <input type="date" id="dataInicial" class="campo-data" />
+        <span class="rotulo-inline">PRAZO:</span>
+        <select id="prazoDias" class="campo-prazo">
+          <option value="">Selecione os dias</option>
+          <option value="5">5 dias</option>
+          <option value="10">10 dias</option>
+          <option value="15">15 dias</option>
+          <option value="20">20 dias</option>
+          <option value="25">25 dias</option>
+          <option value="30">30 dias</option>
+          <option value="45">45 dias</option>
+          <option value="60">60 dias</option>
+          <option value="90">90 dias</option>
+          <option value="120">120 dias</option>
+          <option value="150">150 dias</option>
+          <option value="360">360 dias</option>
+        </select>
+        <button id="btnGerarAutomatico" class="btn-gerar">GERAR AUTOMÁTICO</button>
+        <button id="btnAtualizarDatas" class="btn-atualizar">ATUALIZAR DATAS</button>
+        <button id="btnCalcularPeso" class="btn-peso">CALCULAR PESO</button>
+        <button id="btnExportarExtrato" class="btn-extrato">EXPORTAR EXTRATO</button>
+        <button id="btnExportarExcel" class="btn-excel">EXPORTAR EXCEL</button>
+      </div>
+
+      </div>
+
+      <div id="resumoGeral" class="resumo">PROGRESSO GERAL DA OBRA: 0,00%</div>
+
+      <div class="tabela-wrap">
+        <div id="saida" class="vazio">Nenhuma planilha carregada.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="modalExtratoBackdrop" class="modal-extrato-backdrop">
+    <div class="modal-extrato">
+      <div class="modal-extrato-header">
+        <h3>Exportar Extrato</h3>
+      </div>
+      <div class="modal-extrato-body">
+        <div class="modal-extrato-grupo">
+          <label>Extrato do cronograma</label>
+          <div style="font-size:12px; line-height:1.45; color:#374151;">
+            O PDF será baixado diretamente com as informações da planilha atual:
+            <br>SETOR, LOCAL, TIPO DE SERVIÇO, ATIVIDADE, INÍCIO, FIM, STATUS, REALIZADO E PESO.
+          </div>
+        </div>
+      </div>
+      <div class="modal-extrato-actions">
+        <button type="button" id="btnCancelarExtrato" class="btn-modal-cancelar">CANCELAR</button>
+        <button type="button" id="btnGerarExtratoModal" class="btn-modal-gerar">BAIXAR PDF</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="modalConfigPlanilhaBackdrop" class="modal-extrato-backdrop">
+    <div class="modal-extrato">
+      <div class="modal-extrato-header">
+        <h3>Configuração da Planilha Online</h3>
+      </div>
+      <div class="modal-extrato-body">
+        <div class="config-planilha-info">
+          Cole abaixo a URL do <strong>Google Apps Script / Web App</strong> da planilha que este cronograma deverá utilizar. A configuração ficará salva neste navegador.
+        </div>
+        <div class="modal-extrato-grupo">
+          <label>URL do Web App</label>
+          <input type="text" id="inputWebAppUrl" class="config-planilha-url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false">
+        </div>
+        <div id="configPlanilhaStatus" class="config-planilha-status sem-configuracao">● Usando conexão padrão do sistema.</div>
+      </div>
+      <div class="modal-extrato-actions">
+        <button type="button" id="btnRestaurarWebApp" class="btn-config-restaurar">RESTAURAR PADRÃO</button>
+        <button type="button" id="btnCancelarConfigPlanilha" class="btn-modal-cancelar">CANCELAR</button>
+        <button type="button" id="btnSalvarConfigPlanilha" class="btn-modal-gerar">SALVAR CONEXÃO</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const WEBAPP_URL_PADRAO = 'https://script.google.com/macros/s/AKfycbycTigp6BcQladVFhuwFqpOZH_4_DnC3Z00eoUxcYvGK-Q9aH7ZmjxVbLpnOMwA5OVa/exec';
+    const CHAVE_WEBAPP_URL_CRONOGRAMA = 'integra_config_webapp_url_cronograma';
+    let WEBAPP_URL = obterWebAppUrlSalva();
+
+    const arquivoExcel = document.getElementById('arquivoExcel');
+    const saida = document.getElementById('saida');
+    const statusEl = document.getElementById('status');
+    const resumoGeralEl = document.getElementById('resumoGeral');
+    var metricRealizadoTopo = document.getElementById('metricRealizadoTopo');
+    var metricPrevistoTopo = document.getElementById('metricPrevistoTopo');
+    var metricDataPrevistoTopo = document.getElementById('metricDataPrevistoTopo');
+    const statusCronogramaMini = document.getElementById('statusCronogramaMini');
+    var metricAtividadesTopo = document.getElementById('metricAtividadesTopo');
+    var metricAConcluirTopo = document.getElementById('metricAConcluirTopo');
+    const heroObraTexto = document.getElementById('heroObraTexto');
+    const heroHoraTexto = document.getElementById('heroHoraTexto');
+    const btnCarregar = document.getElementById('btnCarregar');
+    const btnSalvar = document.getElementById('btnSalvar');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const btnNovaAba = document.getElementById('btnNovaAba');
+    const btnExcluirAba = document.getElementById('btnExcluirAba');
+    const btnGerarAutomatico = document.getElementById('btnGerarAutomatico');
+    const btnAtualizarDatas = document.getElementById('btnAtualizarDatas');
+    const btnCalcularPeso = document.getElementById('btnCalcularPeso');
+    const btnExportarExtrato = document.getElementById('btnExportarExtrato');
+    const btnExportarExcel = document.getElementById('btnExportarExcel');
+    const selectAba = document.getElementById('selectAba');
+    const nomeNovaAba = document.getElementById('nomeNovaAba');
+    const dataInicial = document.getElementById('dataInicial');
+    const prazoDias = document.getElementById('prazoDias');
+    const modalExtratoBackdrop = document.getElementById('modalExtratoBackdrop');
+    const selectFiltroExtrato = document.getElementById('selectFiltroExtrato');
+    const labelFiltroExtrato = document.getElementById('labelFiltroExtrato');
+    const btnCancelarExtrato = document.getElementById('btnCancelarExtrato');
+    const btnGerarExtratoModal = document.getElementById('btnGerarExtratoModal');
+    const btnConfigPlanilha = document.getElementById('btnConfigPlanilha');
+    const modalConfigPlanilhaBackdrop = document.getElementById('modalConfigPlanilhaBackdrop');
+    const inputWebAppUrl = document.getElementById('inputWebAppUrl');
+    const configPlanilhaStatus = document.getElementById('configPlanilhaStatus');
+    const btnRestaurarWebApp = document.getElementById('btnRestaurarWebApp');
+    const btnCancelarConfigPlanilha = document.getElementById('btnCancelarConfigPlanilha');
+    const btnSalvarConfigPlanilha = document.getElementById('btnSalvarConfigPlanilha');
+
+    const CAMPOS_EDITAVEIS = ['DIFICULDADE', 'INICIO', 'FIM', 'STATUS', 'REALIZADO', 'OBS'];
+    const OPCOES_STATUS = ['Não iniciado', 'Em andamento', 'Concluído', 'Atrasado', 'Parado'];
+    const OPCOES_DIFICULDADE = ['Leve', 'Média', 'Pesada', 'Crítica'];
+    const OPCOES_REALIZADO = ['10%', '25%', '50%', '75%', '100%'];
+    const PESOS_DIFICULDADE = { 'LEVE': 1, 'MEDIA': 2.5, 'PESADA': 5, 'CRITICA': 10 };
+
+    const CHAVE_DADOS_CRONOGRAMA_DASHBOARD = 'dadosCronograma';
+    const CHAVE_RESUMO_CRONOGRAMA_DASHBOARD = 'resumoCronogramaDashboard';
+
+    let dadosAtuais = [];
+    let linhaSelecionadaNovaPlanilha = null;
+      limparVisualizacaoNovaPlanilha();
+    let headerIndexAtual = 0;
+
+    window.addEventListener('error', function(event) {
+      console.error('Erro no sistema:', event.message, event.filename, event.lineno);
+      if (statusEl) statusEl.textContent = 'Erro interno no painel. Verifique o console ou atualize a página.';
+    });
+
+    carregarListaAbas();
+    atualizarHeroObra();
+    atualizarIndicadorPrevisto(0, 0);
+
+    dataInicial.addEventListener('change', () => {
+      if (dataInicial.value) statusEl.textContent = `Data inicial selecionada: ${formatarDataBR(dataInicial.value)}`;
+    });
+
+    prazoDias.addEventListener('change', () => {
+      if (prazoDias.value) statusEl.textContent = `Prazo selecionado: ${prazoDias.value} dias úteis.`;
+    });
+
+    arquivoExcel.addEventListener('change', function(event) {
+      const arquivo = event.target.files[0];
+      if (!arquivo) return;
+
+      // Evita manter na tela a planilha anterior ao importar outro arquivo.
+      document.querySelectorAll('.nova-planilha-view').forEach(el => el.remove());
+      linhaSelecionadaNovaPlanilha = null;
+      saida.innerHTML = '<div class="vazio">Carregando nova planilha...</div>';
+
+      statusEl.textContent = 'Lendo planilha importada...';
+      const leitor = new FileReader();
+
+      leitor.onload = function(e) {
+        const dados = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(dados, { type: 'array' });
+        const primeiraAba = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[primeiraAba];
+        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+        if (!json || json.length === 0) {
+          dadosAtuais = [];
+          btnSalvar.disabled = true;
+          saida.innerHTML = '<div class="vazio">A planilha está vazia.</div>';
+          statusEl.textContent = 'A planilha importada está vazia.';
+          atualizarResumoGeral();
+          return;
+        }
+
+        dadosAtuais = normalizarMatriz(json);
+        headerIndexAtual = encontrarLinhaCabecalho(dadosAtuais);
+        btnSalvar.disabled = !selectAba.value;
+        renderizarTabela(dadosAtuais);
+      setTimeout(() => {
+        reaplicarValoresImportadosNosCampos();
+        atualizarIndicadoresAposCarregarPlanilha();
+        renderizarNovaPlanilhaVerde();
+      }, 0);calcularPesosEProgresso(false);
+        statusEl.textContent = 'Planilha importada com sucesso. Agora você pode salvar na aba selecionada.';
+      };
+
+      leitor.readAsArrayBuffer(arquivo);
+    });
+
+    btnCarregar.addEventListener('click', carregarDadosOnline);
+    btnSalvar.addEventListener('click', salvarOnline);
+    btnLimpar.addEventListener('click', limparPlanilha);
+    btnNovaAba.addEventListener('click', criarNovaAba);
+    btnExcluirAba.addEventListener('click', excluirAba);
+    btnGerarAutomatico.addEventListener('click', gerarDatasAutomaticas);
+    btnAtualizarDatas.addEventListener('click', atualizarDatasConcluidas);
+    btnCalcularPeso.addEventListener('click', () => calcularPesosEProgresso(true));
+    if (btnExportarExtrato && !btnExportarExtrato.dataset.listenerOk) {
+      btnExportarExtrato.addEventListener('click', abrirModalExtrato);
+      btnExportarExtrato.dataset.listenerOk = '1';
+    }
+    if (btnExportarExcel) btnExportarExcel.addEventListener('click', exportarExcelPlanilhaAtual);
+    if (btnCancelarExtrato) btnCancelarExtrato.addEventListener('click', fecharModalExtrato);
+    if (btnGerarExtratoModal && !btnGerarExtratoModal.dataset.listenerOk) {
+      btnGerarExtratoModal.addEventListener('click', gerarPDFExtratoCronograma);
+      btnGerarExtratoModal.dataset.listenerOk = '1';
+    }
+    if (modalExtratoBackdrop) {
+      modalExtratoBackdrop.addEventListener('click', function(event) {
+        if (event.target === modalExtratoBackdrop) fecharModalExtrato();
+      });
+    }
+
+    if (btnConfigPlanilha) btnConfigPlanilha.addEventListener('click', abrirConfiguracaoPlanilha);
+    if (btnCancelarConfigPlanilha) btnCancelarConfigPlanilha.addEventListener('click', fecharConfiguracaoPlanilha);
+    if (btnSalvarConfigPlanilha) btnSalvarConfigPlanilha.addEventListener('click', salvarConfiguracaoPlanilha);
+    if (btnRestaurarWebApp) btnRestaurarWebApp.addEventListener('click', restaurarConfiguracaoPadrao);
+    if (modalConfigPlanilhaBackdrop) {
+      modalConfigPlanilhaBackdrop.addEventListener('click', function(event) {
+        if (event.target === modalConfigPlanilhaBackdrop) fecharConfiguracaoPlanilha();
+      });
+    }
+
+    selectAba.addEventListener('change', () => {
+      btnSalvar.disabled = !selectAba.value || !dadosAtuais.length;
+      atualizarHeroObra();
+    });
+
+
+    function obterWebAppUrlSalva() {
+      try {
+        const urlSalva = String(localStorage.getItem(CHAVE_WEBAPP_URL_CRONOGRAMA) || '').trim();
+        return urlSalva || WEBAPP_URL_PADRAO;
+      } catch (erro) {
+        return WEBAPP_URL_PADRAO;
+      }
+    }
+
+    function validarWebAppUrl(url) {
+      const valor = String(url || '').trim();
+      if (!valor) return false;
+      return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec(?:\?.*)?$/i.test(valor);
+    }
+
+    function atualizarStatusConfiguracaoPlanilha() {
+      if (!configPlanilhaStatus) return;
+      const personalizada = WEBAPP_URL !== WEBAPP_URL_PADRAO;
+      configPlanilhaStatus.classList.toggle('sem-configuracao', !personalizada);
+      configPlanilhaStatus.textContent = personalizada
+        ? '● Conexão personalizada salva. Esta planilha será usada ao carregar e salvar.'
+        : '● Usando conexão padrão do sistema.';
+    }
+
+    function abrirConfiguracaoPlanilha() {
+      if (inputWebAppUrl) inputWebAppUrl.value = WEBAPP_URL;
+      atualizarStatusConfiguracaoPlanilha();
+      if (modalConfigPlanilhaBackdrop) modalConfigPlanilhaBackdrop.classList.add('ativo');
+    }
+
+    function fecharConfiguracaoPlanilha() {
+      if (modalConfigPlanilhaBackdrop) modalConfigPlanilhaBackdrop.classList.remove('ativo');
+    }
+
+    async function salvarConfiguracaoPlanilha() {
+      const novaUrl = String(inputWebAppUrl ? inputWebAppUrl.value : '').trim();
+      if (!validarWebAppUrl(novaUrl)) {
+        statusEl.textContent = 'URL inválida. Cole a URL publicada do Web App, terminando em /exec.';
+        return;
+      }
+
+      try {
+        localStorage.setItem(CHAVE_WEBAPP_URL_CRONOGRAMA, novaUrl);
+        WEBAPP_URL = novaUrl;
+        atualizarStatusConfiguracaoPlanilha();
+        fecharConfiguracaoPlanilha();
+        selectAba.value = '';
+        dadosAtuais = [];
+        btnSalvar.disabled = true;
+        saida.innerHTML = '<div class="vazio">Conexão atualizada. Selecione uma obra / aba e carregue os dados online.</div>';
+        statusEl.textContent = 'Nova conexão salva. Buscando as abas da planilha configurada...';
+        await carregarListaAbas();
+      } catch (erro) {
+        console.error('Erro ao salvar URL do Web App:', erro);
+        statusEl.textContent = 'Não foi possível salvar a configuração neste navegador.';
+      }
+    }
+
+    async function restaurarConfiguracaoPadrao() {
+      const confirmar = window.confirm('Deseja restaurar a conexão padrão do cronograma?');
+      if (!confirmar) return;
+
+      try {
+        localStorage.removeItem(CHAVE_WEBAPP_URL_CRONOGRAMA);
+        WEBAPP_URL = WEBAPP_URL_PADRAO;
+        if (inputWebAppUrl) inputWebAppUrl.value = WEBAPP_URL;
+        atualizarStatusConfiguracaoPlanilha();
+        fecharConfiguracaoPlanilha();
+        selectAba.value = '';
+        dadosAtuais = [];
+        btnSalvar.disabled = true;
+        saida.innerHTML = '<div class="vazio">Conexão padrão restaurada. Selecione uma obra / aba e carregue os dados online.</div>';
+        statusEl.textContent = 'Conexão padrão restaurada. Buscando abas...';
+        await carregarListaAbas();
+      } catch (erro) {
+        console.error('Erro ao restaurar configuração:', erro);
+        statusEl.textContent = 'Não foi possível restaurar a conexão padrão.';
+      }
+    }
+
+
+    function atualizarHeroObra() {
+      if (heroObraTexto) {
+        heroObraTexto.textContent = selectAba && selectAba.value ? selectAba.value : 'Cronograma Online';
+      }
+      if (heroHoraTexto) {
+        const agora = new Date();
+        heroHoraTexto.textContent = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+    }
+
+    async function carregarListaAbas() {
+      try {
+        const resposta = await fetch(`${WEBAPP_URL}?action=listSheets&t=${Date.now()}`, { method: 'GET', cache: 'no-store' });
+        const texto = await resposta.text();
+        const resultado = JSON.parse(texto);
+
+        if (resultado.status === 'ok' && Array.isArray(resultado.abas)) {
+          preencherSelectAbas(resultado.abas);
+          if (!statusEl.textContent.includes('conexão') && !statusEl.textContent.includes('Conexão')) statusEl.textContent = '';
+        } else {
+          statusEl.textContent = resultado.mensagem || 'Não foi possível listar as abas.';
+        }
+      } catch (erro) {
+        console.error('Erro ao listar abas:', erro);
+        statusEl.textContent = 'Erro ao listar as abas do Google Sheets.';
+      }
+    }
+
+    function preencherSelectAbas(abas) {
+      const atual = selectAba.value;
+      selectAba.innerHTML = '<option value="">Selecione a obra / aba</option>';
+      abas.forEach(aba => {
+        const option = document.createElement('option');
+        option.value = aba;
+        option.textContent = aba;
+        selectAba.appendChild(option);
+      });
+      if (atual && abas.includes(atual)) selectAba.value = atual;
+      if (typeof atualizarHeroObra === 'function') atualizarHeroObra();
+    }
+
+    async function criarNovaAba() {
+      const nome = nomeNovaAba.value.trim();
+      if (!nome) {
+        statusEl.textContent = 'Digite o nome da nova aba.';
+        return;
+      }
+
+      btnNovaAba.disabled = true;
+      statusEl.textContent = 'Criando nova aba...';
+
+      try {
+        const resposta = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'createSheet', sheetName: nome })
+        });
+
+        const texto = await resposta.text();
+        const resultado = JSON.parse(texto);
+
+        if (resultado.status === 'ok') {
+          await carregarListaAbas();
+          selectAba.value = nome;
+          nomeNovaAba.value = '';
+          statusEl.textContent = 'Nova aba criada com sucesso. Agora importe e salve a planilha nessa aba.';
+          btnSalvar.disabled = !dadosAtuais.length;
+        } else {
+          statusEl.textContent = resultado.mensagem || 'Erro ao criar nova aba.';
+        }
+      } catch (erro) {
+        console.error('Erro ao criar aba:', erro);
+        statusEl.textContent = 'Erro ao criar nova aba.';
+      } finally {
+        btnNovaAba.disabled = false;
+      }
+    }
+
+    async function excluirAba() {
+      if (!selectAba.value) {
+        statusEl.textContent = 'Selecione uma aba para excluir.';
+        return;
+      }
+
+      const abaSelecionada = selectAba.value;
+      const confirmar = window.confirm(`Deseja realmente excluir a aba "${abaSelecionada}"?`);
+      if (!confirmar) return;
+
+      btnExcluirAba.disabled = true;
+      statusEl.textContent = `Excluindo a aba "${abaSelecionada}"...`;
+
+      try {
+        const resposta = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'deleteSheet', sheetName: abaSelecionada })
+        });
+
+        const texto = await resposta.text();
+        const resultado = JSON.parse(texto);
+
+        if (resultado.status === 'ok') {
+          dadosAtuais = [];
+          headerIndexAtual = 0;
+          saida.innerHTML = '<div class="vazio">Aba excluída com sucesso.</div>';
+          statusEl.textContent = `Aba "${abaSelecionada}" excluída com sucesso.`;
+          selectAba.value = '';
+          btnSalvar.disabled = true;
+          atualizarResumoGeral();
+          await carregarListaAbas();
+        } else {
+          statusEl.textContent = resultado.mensagem || 'Erro ao excluir aba.';
+        }
+      } catch (erro) {
+        console.error('Erro ao excluir aba:', erro);
+        statusEl.textContent = 'Erro ao excluir aba.';
+      } finally {
+        btnExcluirAba.disabled = false;
+      }
+    }
+
+    async function carregarDadosOnline() {
+      if (!selectAba.value) {
+        statusEl.textContent = 'Selecione uma obra / aba para carregar.';
+        return;
+      }
+
+      btnCarregar.disabled = true;
+
+      // Garante que a troca de aba/planilha não acumule visualizações repetidas.
+      document.querySelectorAll('.nova-planilha-view').forEach(el => el.remove());
+      linhaSelecionadaNovaPlanilha = null;
+      saida.innerHTML = '<div class="vazio">Carregando dados online...</div>';
+      statusEl.textContent = 'Carregando dados online...';
+
+      try {
+        const resposta = await fetch(`${WEBAPP_URL}?sheetName=${encodeURIComponent(selectAba.value)}&t=${Date.now()}`, {
+          method: 'GET',
+          cache: 'no-store'
+        });
+
+        const texto = await resposta.text();
+        const resultado = JSON.parse(texto);
+
+        if (resultado.status === 'ok' && Array.isArray(resultado.dados)) {
+          const temSomenteVazio = resultado.dados.length === 1 && resultado.dados[0].length === 1 && resultado.dados[0][0] === '';
+
+          if (resultado.dados.length === 0 || temSomenteVazio) {
+            dadosAtuais = [];
+            btnSalvar.disabled = true;
+            saida.innerHTML = '<div class="vazio">A aba selecionada está vazia.</div>';
+            statusEl.textContent = 'Nenhum dado encontrado nesta aba.';
+            atualizarResumoGeral();
+            return;
+          }
+
+          dadosAtuais = normalizarMatriz(resultado.dados);
+          headerIndexAtual = encontrarLinhaCabecalho(dadosAtuais);
+          renderizarTabela(dadosAtuais);
+      setTimeout(() => {
+        reaplicarValoresImportadosNosCampos();
+        atualizarIndicadoresAposCarregarPlanilha();
+        renderizarNovaPlanilhaVerde();
+      }, 0);calcularPesosEProgresso(false);
+          btnSalvar.disabled = false;
+          statusEl.textContent = 'Dados online carregados com sucesso.';
+        } else {
+          dadosAtuais = [];
+          btnSalvar.disabled = true;
+          saida.innerHTML = '<div class="vazio">A aba selecionada está vazia.</div>';
+          statusEl.textContent = 'Nenhum dado encontrado nesta aba.';
+          atualizarResumoGeral();
+        }
+      } catch (erro) {
+        console.error('Erro ao carregar online:', erro);
+        saida.innerHTML = '<div class="vazio">Não foi possível carregar os dados online.</div>';
+        statusEl.textContent = 'Erro ao ler o Google Sheets.';
+      } finally {
+        btnCarregar.disabled = false;
+      }
+    }
+
+    function confirmarSalvarOnline() {
+      const nomeAba = selectAba && selectAba.value ? selectAba.value : '';
+      if (!nomeAba) return false;
+
+      return window.confirm(
+        `Confirma salvar a planilha atual na aba "${nomeAba}"?\n\n` +
+        'A planilha online dessa aba será atualizada com os dados que estão na tela.'
+      );
+    }
+
+    function sincronizarCamposDaTelaComMatriz() {
+      try {
+        document.querySelectorAll('[data-linha][data-coluna], [data-row][data-col]').forEach(campo => {
+          const linha = Number(campo.dataset.linha ?? campo.dataset.row);
+          const coluna = Number(campo.dataset.coluna ?? campo.dataset.col);
+
+          if (!Number.isFinite(linha) || !Number.isFinite(coluna)) return;
+          if (!dadosAtuais[linha]) return;
+
+          dadosAtuais[linha][coluna] = campo.value;
+        });
+      } catch (erro) {
+        console.warn('Não foi possível sincronizar os campos antes de salvar:', erro);
+      }
+    }
+
+    async function salvarOnline() {
+      if (!dadosAtuais.length) {
+        statusEl.textContent = 'Não há dados para salvar.';
+        return;
+      }
+      if (!selectAba.value) {
+        statusEl.textContent = 'Selecione uma obra / aba antes de salvar.';
+        return;
+      }
+      if (!confirmarSalvarOnline()) return;
+
+      sincronizarCamposDaTelaComMatriz();
+
+      btnSalvar.disabled = true;
+      statusEl.textContent = `Salvando dados na aba "${selectAba.value}"...`;
+
+      try {
+        const payload = {
+          action: 'saveData',
+          sheetName: selectAba.value,
+          dados: dadosAtuais
+        };
+
+        const resposta = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow'
+        });
+
+        const texto = await resposta.text();
+        let resultado = null;
+
+        try {
+          resultado = JSON.parse(texto);
+        } catch (erroJson) {
+          console.error('Resposta não JSON ao salvar:', texto);
+          statusEl.textContent = 'O Google Sheets respondeu em formato inválido. Verifique a implantação do Apps Script.';
+          return;
+        }
+
+        if (resultado.status === 'ok') {
+          statusEl.textContent = `Dados salvos com sucesso na aba "${selectAba.value}".`;
+          publicarCronogramaNoDashboard();
+          await carregarListaAbas();
+          if (selectAba) selectAba.value = payload.sheetName;
+        } else {
+          statusEl.textContent = 'Erro ao salvar online: ' + (resultado.mensagem || resultado.error || 'erro desconhecido');
+        }
+      } catch (erro) {
+        console.error('Erro ao salvar online:', erro);
+        statusEl.textContent = 'Erro ao enviar dados para o Google Sheets. Verifique internet, permissão do Apps Script ou CORS.';
+      } finally {
+        btnSalvar.disabled = false;
+      }
+    }
+
+    function limparPlanilha() {
+      dadosAtuais = [];
+      headerIndexAtual = 0;
+      arquivoExcel.value = '';
+      btnSalvar.disabled = true;
+      saida.innerHTML = '<div class="vazio">Planilha limpa no sistema.</div>';
+      statusEl.textContent = 'Planilha limpa no sistema. A planilha online só será alterada se você salvar novamente.';
+      atualizarResumoGeral();
+      resetarIndicadoresPainel();
+      limparVisualizacaoNovaPlanilha();
+      limparDadosDashboardCronograma();
+    }
+
+
+    function gerarDatasAutomaticas() {
+      if (!dadosAtuais.length) {
+        statusEl.textContent = 'Importe ou carregue uma planilha antes de gerar as datas.';
+        return;
+      }
+
+      if (!dataInicial.value) {
+        statusEl.textContent = 'Selecione a data inicial.';
+        return;
+      }
+
+      if (!prazoDias.value) {
+        statusEl.textContent = 'Selecione o prazo em dias.';
+        return;
+      }
+
+      const idxInicio = localizarColuna('INICIO');
+      const idxFim = localizarColuna('FIM');
+      const idxDificuldade = localizarColuna('DIFICULDADE');
+
+      if (idxInicio === -1 || idxFim === -1) {
+        statusEl.textContent = 'Não encontrei as colunas INICIO e FIM na planilha.';
+        return;
+      }
+
+      if (idxDificuldade === -1) {
+        statusEl.textContent = 'Não encontrei a coluna DIFICULDADE para distribuir as datas por peso.';
+        return;
+      }
+
+      const linhasAtividade = obterLinhasAtividade();
+      if (!linhasAtividade.length) {
+        statusEl.textContent = 'Não encontrei atividades para preencher as datas.';
+        return;
+      }
+
+      const prazo = Number(prazoDias.value);
+      const capacidadePorDia = obterCapacidadeMaximaAtividadesPorDia();
+
+      const itens = linhasAtividade.map((linhaIndex, ordemOriginal) => {
+        const dificuldade = normalizarCabecalho(dadosAtuais[linhaIndex][idxDificuldade] || 'LEVE');
+        const fator = PESOS_DIFICULDADE[dificuldade] ?? 1;
+        const prioridade = obterPrioridadeDificuldade(dificuldade);
+        return { linhaIndex, dificuldade, fator, prioridade, ordemOriginal };
+      });
+
+      /*
+        Nova lógica de distribuição automática:
+        - mantém a ordem original das atividades da planilha;
+        - usa a dificuldade/peso para decidir quantos blocos de tempo cada atividade recebe;
+        - limita a concentração em no máximo 3 atividades/blocos por dia útil;
+        - se o prazo selecionado não comportar todas as atividades, estende os dias úteis necessários,
+          em vez de jogar todas as atividades restantes na última data;
+        - atividades pesadas e críticas recebem prioridade na distribuição dos blocos extras.
+      */
+      const totalAtividades = itens.length;
+      const capacidadeInformada = prazo * capacidadePorDia;
+      const capacidadeMinimaNecessaria = totalAtividades;
+      const capacidadeTotal = Math.max(capacidadeInformada, capacidadeMinimaNecessaria);
+      const diasNecessarios = Math.max(prazo, Math.ceil(capacidadeTotal / capacidadePorDia));
+      const diasUteis = gerarDiasUteis(dataInicial.value, diasNecessarios);
+
+      if (!diasUteis.length) {
+        statusEl.textContent = 'Não foi possível gerar os dias úteis.';
+        return;
+      }
+
+      const blocosPorAtividade = distribuirBlocosPorPesoComPrioridade(itens, capacidadeTotal);
+      const agenda = montarAgendaPorCapacidade(itens, blocosPorAtividade, diasUteis, capacidadePorDia);
+
+      agenda.forEach(itemAgenda => {
+        dadosAtuais[itemAgenda.linhaIndex][idxInicio] = formatarDataBR(itemAgenda.inicio);
+        dadosAtuais[itemAgenda.linhaIndex][idxFim] = formatarDataBR(itemAgenda.fim);
+      });
+
+      renderizarTabela(dadosAtuais);
+      setTimeout(() => {
+        reaplicarValoresImportadosNosCampos();
+        atualizarIndicadoresAposCarregarPlanilha();
+        renderizarNovaPlanilhaVerde();
+      }, 0);
+
+      if (typeof calcularPesosEProgresso === 'function') {
+        calcularPesosEProgresso(false);
+      }
+
+      const maiorDuracao = Math.max(...agenda.map(item => item.blocos));
+      const menorDuracao = Math.min(...agenda.map(item => item.blocos));
+      const dataFinal = agenda.length ? formatarDataBR(agenda[agenda.length - 1].fim) : '';
+      const mensagemExtensao = diasNecessarios > prazo
+        ? ` O prazo foi estendido automaticamente para ${diasNecessarios} dias úteis, pois ${prazo} dias não comportavam ${totalAtividades} atividades no limite de ${capacidadePorDia} por dia.`
+        : '';
+
+      statusEl.textContent = `Datas geradas por peso e capacidade diária. ${totalAtividades} atividades distribuídas até ${dataFinal}. Limite: até ${capacidadePorDia} atividades/blocos por dia. Blocos por atividade: ${menorDuracao} a ${maiorDuracao}.${mensagemExtensao}`;
+      btnSalvar.disabled = !selectAba.value;
+    }
+
+    function obterCapacidadeMaximaAtividadesPorDia() {
+      return 3;
+    }
+
+    function obterPrioridadeDificuldade(dificuldadeNormalizada) {
+      const dificuldade = normalizarCabecalho(dificuldadeNormalizada);
+      if (dificuldade === 'CRITICA') return 4;
+      if (dificuldade === 'PESADA') return 3;
+      if (dificuldade === 'MEDIA') return 2;
+      return 1;
+    }
+
+    function distribuirBlocosPorPesoComPrioridade(itens, capacidadeTotal) {
+      const totalAtividades = itens.length;
+      const blocos = itens.map(() => 1);
+      let blocosUsados = totalAtividades;
+      let blocosExtras = Math.max(0, capacidadeTotal - blocosUsados);
+
+      if (blocosExtras <= 0) return blocos;
+
+      const somaFatores = itens.reduce((total, item) => total + Number(item.fator || 1), 0);
+      const distribuicao = itens.map((item, index) => {
+        const ideal = somaFatores > 0 ? (Number(item.fator || 1) / somaFatores) * blocosExtras : 0;
+        const base = Math.floor(ideal);
+        blocos[index] += base;
+        blocosUsados += base;
+
+        return {
+          index,
+          resto: ideal - base,
+          prioridade: item.prioridade,
+          fator: item.fator,
+          ordemOriginal: item.ordemOriginal
+        };
+      });
+
+      let restante = capacidadeTotal - blocosUsados;
+
+      distribuicao
+        .sort((a, b) => {
+          if (b.resto !== a.resto) return b.resto - a.resto;
+          if (b.prioridade !== a.prioridade) return b.prioridade - a.prioridade;
+          if (b.fator !== a.fator) return b.fator - a.fator;
+          return a.ordemOriginal - b.ordemOriginal;
+        })
+        .forEach(item => {
+          if (restante > 0) {
+            blocos[item.index] += 1;
+            restante -= 1;
+          }
+        });
+
+      /* Segurança: se ainda sobrar bloco por arredondamento, entrega primeiro para críticas/pesadas. */
+      let pos = 0;
+      const ordemPrioridade = distribuicao.sort((a, b) => {
+        if (b.prioridade !== a.prioridade) return b.prioridade - a.prioridade;
+        if (b.fator !== a.fator) return b.fator - a.fator;
+        return a.ordemOriginal - b.ordemOriginal;
+      });
+
+      while (restante > 0 && ordemPrioridade.length) {
+        blocos[ordemPrioridade[pos % ordemPrioridade.length].index] += 1;
+        restante -= 1;
+        pos += 1;
+      }
+
+      return blocos;
+    }
+
+    function montarAgendaPorCapacidade(itens, blocosPorAtividade, diasUteis, capacidadePorDia) {
+      const agenda = [];
+      let diaIndex = 0;
+      let ocupacaoDia = 0;
+
+      function garantirDiaDisponivel() {
+        if (ocupacaoDia >= capacidadePorDia) {
+          diaIndex += 1;
+          ocupacaoDia = 0;
+        }
+      }
+
+      itens.forEach((item, index) => {
+        let blocosRestantes = Math.max(1, Number(blocosPorAtividade[index] || 1));
+        garantirDiaDisponivel();
+
+        const inicio = diasUteis[Math.min(diaIndex, diasUteis.length - 1)];
+        let fim = inicio;
+
+        while (blocosRestantes > 0) {
+          garantirDiaDisponivel();
+
+          if (diaIndex >= diasUteis.length) {
+            const ultimoDia = criarDataLocal(diasUteis[diasUteis.length - 1]);
+            ultimoDia.setDate(ultimoDia.getDate() + 1);
+
+            while (diasUteis.length <= diaIndex) {
+              if (ehDiaUtil(ultimoDia)) {
+                diasUteis.push(formatarISO(ultimoDia));
+              }
+              ultimoDia.setDate(ultimoDia.getDate() + 1);
+            }
+          }
+
+          fim = diasUteis[diaIndex];
+          ocupacaoDia += 1;
+          blocosRestantes -= 1;
+        }
+
+        agenda.push({
+          linhaIndex: item.linhaIndex,
+          inicio,
+          fim,
+          blocos: Math.max(1, Number(blocosPorAtividade[index] || 1)),
+          dificuldade: item.dificuldade
+        });
+      });
+
+      return agenda;
+    }
+
+    function distribuirDiasPorPeso(itens, totalDias, somaFatores) {
+      const totalAtividades = itens.length;
+
+      if (totalDias <= totalAtividades) {
+        return itens.map(() => 1);
+      }
+
+      const duracoes = [];
+      let somaDuracoes = 0;
+
+      itens.forEach(item => {
+        const diasIdeais = (item.fator / somaFatores) * totalDias;
+        const diasBase = Math.max(1, Math.floor(diasIdeais));
+        const resto = diasIdeais - Math.floor(diasIdeais);
+
+        duracoes.push({
+          dias: diasBase,
+          resto
+        });
+
+        somaDuracoes += diasBase;
+      });
+
+      let diferenca = totalDias - somaDuracoes;
+
+      if (diferenca > 0) {
+        const ordem = duracoes
+          .map((item, index) => ({ index, resto: item.resto }))
+          .sort((a, b) => b.resto - a.resto);
+
+        let pos = 0;
+        while (diferenca > 0) {
+          duracoes[ordem[pos % ordem.length].index].dias += 1;
+          diferenca--;
+          pos++;
+        }
+      }
+
+      if (diferenca < 0) {
+        const ordem = duracoes
+          .map((item, index) => ({ index, dias: item.dias, fator: itens[index].fator }))
+          .sort((a, b) => {
+            if (b.dias !== a.dias) return b.dias - a.dias;
+            return b.fator - a.fator;
+          });
+
+        let pos = 0;
+        let seguranca = 0;
+
+        while (diferenca < 0 && seguranca < 10000) {
+          const alvo = ordem[pos % ordem.length].index;
+
+          if (duracoes[alvo].dias > 1) {
+            duracoes[alvo].dias -= 1;
+            diferenca++;
+          }
+
+          pos++;
+          seguranca++;
+        }
+      }
+
+      return duracoes.map(item => item.dias);
+    }
+
+
+    function atualizarDatasConcluidas() {
+      if (!dadosAtuais.length) {
+        statusEl.textContent = 'Importe ou carregue uma planilha antes de atualizar as datas.';
+        return;
+      }
+
+      const idxInicio = localizarColuna('INICIO');
+      const idxFim = localizarColuna('FIM');
+      const idxStatus = localizarColuna('STATUS');
+      const idxRealizado = localizarColuna('REALIZADO');
+      if (idxInicio === -1 || idxFim === -1) {
+        statusEl.textContent = 'Não encontrei as colunas INICIO e FIM na planilha.';
+        return;
+      }
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      let concluidas = 0;
+      let emAndamento = 0;
+
+      for (let i = headerIndexAtual + 1; i < dadosAtuais.length; i++) {
+        const linha = dadosAtuais[i];
+        const temConteudo = linha.some(valor => String(valor || '').trim() !== '');
+        if (!temConteudo) continue;
+
+        const inicio = parseDataBR(String(linha[idxInicio] || ''));
+        const fim = parseDataBR(String(linha[idxFim] || ''));
+
+        if (!inicio || !fim) continue;
+
+        if (fim < hoje) {
+          if (idxStatus !== -1) dadosAtuais[i][idxStatus] = 'Concluído';
+          if (idxRealizado !== -1) dadosAtuais[i][idxRealizado] = '100%';
+          concluidas++;
+        } else if (inicio <= hoje && fim >= hoje) {
+          if (idxStatus !== -1 && !String(dadosAtuais[i][idxStatus] || '').trim()) dadosAtuais[i][idxStatus] = 'Em andamento';
+          emAndamento++;
+        }
+      }
+
+      renderizarTabela(dadosAtuais);
+      setTimeout(() => {
+        reaplicarValoresImportadosNosCampos();
+        atualizarIndicadoresAposCarregarPlanilha();
+        renderizarNovaPlanilhaVerde();
+      }, 0);calcularPesosEProgresso(false);
+      statusEl.textContent = `${concluidas} atividade(s) marcada(s) como 100% concluída(s). ${emAndamento} atividade(s) em andamento.`;
+      btnSalvar.disabled = !selectAba.value;
+    }
+
+    function calcularPesosEProgresso(mostrarMensagem=true, renderizarTabelaCompleta=true) {
+      if (!dadosAtuais.length) {
+        atualizarResumoGeral();
+        return;
+      }
+
+      const idxDificuldade = localizarColuna('DIFICULDADE');
+      const idxPeso = localizarColuna('PESO');
+      const idxStatus = localizarColuna('STATUS');
+      const idxRealizado = localizarColuna('REALIZADO');
+
+      if (idxDificuldade === -1 || idxPeso === -1) {
+        statusEl.textContent = 'Não encontrei as colunas DIFICULDADE e PESO na planilha.';
+        return;
+      }
+
+      const linhasAtividade = obterLinhasAtividade();
+      if (!linhasAtividade.length) {
+        atualizarResumoGeral();
+        return;
+      }
+
+      let somaFatores = 0;
+      const fatores = [];
+
+      for (const linhaIndex of linhasAtividade) {
+        const dificuldade = normalizarCabecalho(dadosAtuais[linhaIndex][idxDificuldade] || 'LEVE');
+        const fator = PESOS_DIFICULDADE[dificuldade] ?? 1;
+        fatores.push({ linhaIndex, fator });
+        somaFatores += fator;
+      }
+
+      let progressoGeral = 0;
+
+      fatores.forEach(item => {
+        const pesoPercentual = somaFatores > 0 ? (item.fator / somaFatores) * 100 : 0;
+        dadosAtuais[item.linhaIndex][idxPeso] = formatarPercentual(pesoPercentual);
+
+        let progressoItem = 0;
+        if (idxStatus !== -1 && normalizarCabecalho(dadosAtuais[item.linhaIndex][idxStatus] || '') === 'CONCLUIDO') {
+          progressoItem = 100;
+        } else if (idxRealizado !== -1) {
+          progressoItem = extrairPercentual(dadosAtuais[item.linhaIndex][idxRealizado]);
+        }
+
+        progressoGeral += pesoPercentual * (progressoItem / 100);
+      });
+
+      if (renderizarTabelaCompleta) {
+        renderizarTabela(dadosAtuais);
+        setTimeout(reaplicarValoresImportadosNosCampos, 0);
+      }
+      atualizarResumoGeral(progressoGeral);
+      try { calcularPrevistoAtual(progressoGeral); } catch (e) { console.warn('Erro ao calcular previsto:', e); }
+
+      publicarCronogramaNoDashboard();
+
+      if (mostrarMensagem) statusEl.textContent = `Pesos recalculados com sucesso. Progresso geral atual: ${formatarPercentual(progressoGeral)}.`;
+    }
+
+    function calcularPrevistoAtual(realizadoAtual=0) {
+      if (!dadosAtuais.length) {
+        atualizarIndicadorPrevisto(0, realizadoAtual);
+        return 0;
+      }
+
+      const idxInicio = localizarColuna('INICIO');
+      const idxFim = localizarColuna('FIM');
+      const idxPeso = localizarColuna('PESO');
+      const idxDificuldade = localizarColuna('DIFICULDADE');
+
+      if (idxInicio === -1 || idxFim === -1) {
+        atualizarIndicadorPrevisto(0, realizadoAtual);
+        return 0;
+      }
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      const linhas = obterLinhasAtividade();
+      let previsto = 0;
+
+      let somaFatores = 0;
+      const fatorPorLinha = {};
+
+      for (const linhaIndex of linhas) {
+        const dificuldade = idxDificuldade !== -1 ? normalizarCabecalho(dadosAtuais[linhaIndex][idxDificuldade] || 'LEVE') : 'LEVE';
+        const fator = PESOS_DIFICULDADE[dificuldade] ?? 1;
+        fatorPorLinha[linhaIndex] = fator;
+        somaFatores += fator;
+      }
+
+      for (const linhaIndex of linhas) {
+        const inicio = parseDataFlexivel(dadosAtuais[linhaIndex][idxInicio]);
+        const fim = parseDataFlexivel(dadosAtuais[linhaIndex][idxFim]);
+
+        if (!inicio || !fim) continue;
+
+        let peso = idxPeso !== -1 ? extrairPercentual(dadosAtuais[linhaIndex][idxPeso]) : 0;
+
+        if (peso <= 0 && somaFatores > 0) {
+          peso = (fatorPorLinha[linhaIndex] / somaFatores) * 100;
+        }
+
+        if (peso <= 0) continue;
+
+        if (hoje < inicio) {
+          previsto += 0;
+        } else if (hoje >= fim) {
+          previsto += peso;
+        } else {
+          const diasTotais = contarDiasUteisEntre(inicio, fim);
+          const diasDecorridos = contarDiasUteisEntre(inicio, hoje);
+          const fatorTempo = diasTotais > 0 ? Math.min(1, Math.max(0, diasDecorridos / diasTotais)) : 0;
+          previsto += peso * fatorTempo;
+        }
+      }
+
+      previsto = Math.max(0, Math.min(100, previsto));
+      atualizarIndicadorPrevisto(previsto, realizadoAtual);
+      return previsto;
+    }
+
+    function atualizarIndicadorPrevisto(previsto, realizadoAtual=0) {
+      const previstoFormatado = formatarPercentual(previsto);
+
+      if (metricPrevistoTopo) {
+        metricPrevistoTopo.textContent = previstoFormatado;
+      }
+
+      if (typeof metricDataPrevistoTopo !== 'undefined' && metricDataPrevistoTopo) {
+        const hoje = new Date();
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        metricDataPrevistoTopo.textContent = `${dia}/${mes}`;
+      }
+
+      atualizarStatusSituacaoObra(previsto, realizadoAtual);
+    }
+
+    function atualizarStatusSituacaoObra(previsto, realizadoAtual=0) {
+      const statusBox = document.getElementById('statusCronogramaMini');
+      if (!statusBox) return;
+
+      const previstoNum = Number(previsto || 0);
+      const realizadoNum = Number(realizadoAtual || 0);
+      const diferenca = realizadoNum - previstoNum;
+
+      let classe = 'em-dia';
+      let texto = 'EM DIA';
+      let detalhe = `Realizado ${formatarPercentual(realizadoNum)} / Previsto ${formatarPercentual(previstoNum)}`;
+
+      if (diferenca < -1) {
+        classe = 'atrasado';
+        texto = 'ATRASADA';
+        detalhe = `${formatarPercentual(Math.abs(diferenca))} abaixo do previsto`;
+      } else if (diferenca > 1) {
+        classe = 'adiantado';
+        texto = 'ADIANTADA';
+        detalhe = `${formatarPercentual(diferenca)} acima do previsto`;
+      }
+
+      statusBox.classList.remove('atrasado', 'adiantado', 'em-dia');
+      statusBox.classList.add(classe);
+      statusBox.innerHTML = `<span class="status-dot-mini"></span><strong>${texto}</strong><small>${detalhe}</small>`;
+    }
+
+
+    function parseDataFlexivel(valor) {
+      const texto = String(valor || '').trim();
+
+      if (!texto) return null;
+
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(texto)) {
+        return parseDataBR(texto);
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
+        const partes = texto.split('-').map(Number);
+        const data = new Date(partes[0], partes[1] - 1, partes[2]);
+        data.setHours(0, 0, 0, 0);
+        return data;
+      }
+
+      const numero = Number(texto.replace(',', '.'));
+      if (!Number.isNaN(numero) && numero > 20000 && numero < 90000) {
+        const base = new Date(1899, 11, 30);
+        base.setDate(base.getDate() + Math.floor(numero));
+        base.setHours(0, 0, 0, 0);
+        return base;
+      }
+
+      return null;
+    }
+
+    function contarDiasUteisEntre(inicio, fim) {
+      const atual = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
+      const limite = new Date(fim.getFullYear(), fim.getMonth(), fim.getDate());
+      atual.setHours(0, 0, 0, 0);
+      limite.setHours(0, 0, 0, 0);
+
+      if (limite < atual) return 0;
+
+      let total = 0;
+      while (atual <= limite) {
+        if (ehDiaUtil(atual)) total++;
+        atual.setDate(atual.getDate() + 1);
+      }
+      return total;
+    }
+
+    function abrirModalExtrato() {
+      if (!dadosAtuais.length) {
+        statusEl.textContent = 'Carregue uma planilha antes de exportar o extrato.';
+        return;
+      }
+
+      if (modalExtratoBackdrop) {
+        modalExtratoBackdrop.classList.add('ativo');
+      }
+    }
+
+    function fecharModalExtrato() {
+      if (modalExtratoBackdrop) {
+        modalExtratoBackdrop.classList.remove('ativo');
+      }
+    }
+
+    function gerarPDFExtratoCronograma() {
+      try {
+        fecharModalExtrato();
+
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+          statusEl.textContent = 'Biblioteca PDF não carregou. Verifique sua conexão com a internet.';
+          return;
+        }
+
+        const idxSetor = localizarColuna('SETOR');
+        const idxLocal = localizarColuna('LOCAL');
+        const idxTipo = localizarColunaFlexivel(['TIPO DE SERVIÇO', 'TIPO DE SERVICO', 'TIPO DE ATIVIDADE', 'TIPO ATIVIDADE', 'TIPO SERVIÇO', 'TIPO SERVICO']);
+        const idxAtividade = localizarColuna('ATIVIDADE');
+        const idxInicio = localizarColuna('INICIO');
+        const idxFim = localizarColuna('FIM');
+        const idxStatus = localizarColuna('STATUS');
+        const idxRealizado = localizarColuna('REALIZADO');
+        const idxPeso = localizarColuna('PESO');
+
+        if (idxSetor === -1 || idxLocal === -1 || idxAtividade === -1) {
+          statusEl.textContent = 'Não encontrei as colunas SETOR, LOCAL e ATIVIDADE para gerar o PDF.';
+          return;
+        }
+
+        const obra = obterValorMetaExtrato('OBRA') || (selectAba && selectAba.value ? selectAba.value : '-');
+        const empresa = 'Integra Engenharia';
+        const grupos = montarGruposPDFExtrato(idxSetor, idxLocal, idxTipo, idxAtividade, idxInicio, idxFim, idxStatus, idxRealizado, idxPeso);
+
+        baixarPDFExtratoCronograma(obra, empresa, grupos);
+        statusEl.textContent = 'PDF do extrato gerado com sucesso.';
+      } catch (erro) {
+        console.error('Erro ao gerar PDF:', erro);
+        statusEl.textContent = 'Erro ao gerar PDF do extrato. Verifique os dados da planilha.';
+      }
+    }
+
+    function localizarColunaFlexivel(nomes) {
+      for (const nome of nomes) {
+        const idx = localizarColuna(nome);
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    }
+
+
+    function montarGruposPDFExtrato(idxSetor, idxLocal, idxTipo, idxAtividade, idxInicio, idxFim, idxStatus, idxRealizado, idxPeso) {
+      const grupos = [];
+      const mapa = new Map();
+
+      let ultimoSetor = '';
+      let ultimoLocal = '';
+      let ultimoTipo = '';
+
+      for (const linhaIndex of obterLinhasAtividade()) {
+        const linha = dadosAtuais[linhaIndex];
+
+        const setorBruto = String(linha[idxSetor] || '').trim();
+        const localBruto = String(linha[idxLocal] || '').trim();
+        const tipoBruto = idxTipo !== -1 ? String(linha[idxTipo] || '').trim() : '';
+        const atividade = String(linha[idxAtividade] || '').trim();
+
+        if (!atividade) continue;
+
+        if (setorBruto) ultimoSetor = setorBruto;
+        if (localBruto) ultimoLocal = localBruto;
+        if (tipoBruto) ultimoTipo = tipoBruto;
+
+        const setor = ultimoSetor || '-';
+        const local = ultimoLocal || '-';
+        const tipoServico = ultimoTipo || 'SERVIÇOS';
+
+        const chaveGrupo = `${normalizarCabecalho(setor)}||${normalizarCabecalho(local)}`;
+
+        if (!mapa.has(chaveGrupo)) {
+          const grupo = {
+            setor,
+            local,
+            tipos: [],
+            mapaTipos: new Map()
+          };
+          mapa.set(chaveGrupo, grupo);
+          grupos.push(grupo);
+        }
+
+        const grupo = mapa.get(chaveGrupo);
+        const chaveTipo = normalizarCabecalho(tipoServico);
+
+        if (!grupo.mapaTipos.has(chaveTipo)) {
+          const grupoTipo = {
+            tipo: tipoServico,
+            atividades: []
+          };
+          grupo.mapaTipos.set(chaveTipo, grupoTipo);
+          grupo.tipos.push(grupoTipo);
+        }
+
+        grupo.mapaTipos.get(chaveTipo).atividades.push({
+          atividade,
+          inicio: idxInicio !== -1 ? String(linha[idxInicio] || '').trim() : '',
+          fim: idxFim !== -1 ? String(linha[idxFim] || '').trim() : '',
+          status: idxStatus !== -1 ? String(linha[idxStatus] || '').trim() : '',
+          realizado: idxRealizado !== -1 ? String(linha[idxRealizado] || '').trim() : '',
+          peso: idxPeso !== -1 ? String(linha[idxPeso] || '').trim() : ''
+        });
+      }
+
+      grupos.forEach(grupo => delete grupo.mapaTipos);
+      return grupos;
+    }
+
+
+    function obterValorMetaExtrato(nome) {
+      const alvo = normalizarCabecalho(nome);
+      for (let i = 0; i < headerIndexAtual; i++) {
+        const linha = dadosAtuais[i] || [];
+        for (let j = 0; j < linha.length; j++) {
+          if (normalizarCabecalho(linha[j]) === alvo) {
+            return String(linha[j + 1] || '').trim();
+          }
+        }
+      }
+      return '';
+    }
+
+
+
+
+
+    function baixarPDFExtratoCronograma(obra, empresa, grupos) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageW = 297;
+      const pageH = 210;
+      const margin = 8;
+      const limitY = pageH - 11;
+
+      let y = 8;
+      let grupoAtualCabecalho = null;
+      let ultimaTabelaAtiva = false;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(17, 24, 39);
+
+      const cols = [
+        { titulo: 'ITEM', w: 14 },
+        { titulo: 'ATIVIDADE', w: 128 },
+        { titulo: 'INÍCIO', w: 24 },
+        { titulo: 'FIM', w: 24 },
+        { titulo: 'STATUS', w: 36 },
+        { titulo: 'REALIZADO', w: 28 },
+        { titulo: 'PESO', w: 27 }
+      ];
+
+      function obterRealizadoGeral() {
+        return metricRealizadoTopo ? metricRealizadoTopo.textContent : '0,00%';
+      }
+
+      function obterAConcluirGeral() {
+        return (typeof metricAConcluirTopo !== 'undefined' && metricAConcluirTopo) ? metricAConcluirTopo.textContent : '100,00%';
+      }
+
+      function novaPagina(repetirCabecalhoTabela=false) {
+        doc.addPage();
+        y = 8;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(17, 24, 39);
+
+        // Nas páginas seguintes não existe cabeçalho superior preto.
+        // Se a quebra ocorrer no meio da tabela, repete somente os títulos da tabela.
+        if (repetirCabecalhoTabela) {
+          desenharCabecalhoTabela();
+        }
+      }
+
+      function novaPaginaSeNecessario(altura=8, repetirCabecalhoTabela=false) {
+        if (y + altura > limitY) {
+          novaPagina(repetirCabecalhoTabela);
+        }
+      }
+
+      function textoLinha(label, valor, x, yLinha, labelW=18) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.2);
+        doc.setTextColor(17, 24, 39);
+        doc.text(label, x, yLinha);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.2);
+        doc.text(String(valor || '-'), x + labelW, yLinha);
+      }
+
+      function desenharCabecalhoRelatorio(grupo=null) {
+        grupoAtualCabecalho = grupo || grupoAtualCabecalho;
+
+        doc.setFillColor(31, 41, 55);
+        doc.rect(margin, y, pageW - margin * 2, 8, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.6);
+        doc.setTextColor(255, 255, 255);
+        doc.text('EXTRATO DO CRONOGRAMA', margin + 2, y + 5.3);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.2);
+        doc.text('INTEGRA ENGENHARIA', pageW - margin - 42, y + 5.3);
+
+        y += 11;
+
+        doc.setTextColor(17, 24, 39);
+
+        const setor = grupo ? grupo.setor : '-';
+        const local = grupo ? grupo.local : '-';
+
+        textoLinha('OBRA:', obra || '-', margin, y, 13);
+        textoLinha('DATA:', formatarDataBR(formatarISO(new Date())), pageW - margin - 45, y, 12);
+        y += 4.5;
+
+        textoLinha('EMPRESA:', empresa || 'Integra Engenharia', margin, y, 18);
+        textoLinha('SETOR:', setor || '-', 102, y, 14);
+        y += 4.5;
+
+        textoLinha('LOCAL:', local || '-', margin, y, 14);
+        textoLinha('REALIZADO:', obterRealizadoGeral(), 102, y, 23);
+        textoLinha('A CONCLUIR:', obterAConcluirGeral(), 153, y, 25);
+        y += 6.5;
+      }
+
+      function obterNumeroTipo(tipoTexto, indicePadrao) {
+        const texto = String(tipoTexto || '').trim();
+        const match = texto.match(/^(\d+)(?:[.,]\d+)?\s*[-–—]/);
+        if (match) return match[1];
+        return String(indicePadrao + 1);
+      }
+
+      function limparTituloTipo(tipoTexto) {
+        const texto = String(tipoTexto || 'SERVIÇOS').trim();
+        return texto.replace(/^\d+(?:[.,]\d+)?\s*[-–—]\s*/g, '').trim() || 'SERVIÇOS';
+      }
+
+      function desenharTituloServico(numeroBase, titulo) {
+        novaPaginaSeNecessario(15, false);
+
+        doc.setFillColor(243, 244, 246);
+        doc.setDrawColor(205, 205, 205);
+        doc.setLineWidth(0.15);
+        doc.rect(margin, y, pageW - margin * 2, 7, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.2);
+        doc.setTextColor(17, 24, 39);
+        doc.text(`${numeroBase}.0 - ${String(titulo || 'SERVIÇOS').toUpperCase()}`, margin + 2, y + 4.8);
+
+        y += 7;
+        desenharCabecalhoTabela();
+      }
+
+      function desenharCabecalhoTabela() {
+        let x = margin;
+        const h = 6;
+
+        doc.setDrawColor(185, 185, 185);
+        doc.setLineWidth(0.12);
+
+        // Cabeçalho da tabela: barra escura com títulos brancos visíveis.
+        cols.forEach(col => {
+          doc.setFillColor(17, 24, 39);
+          doc.rect(x, y, col.w, h, 'FD');
+          x += col.w;
+        });
+
+        x = margin;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(5.8);
+        doc.setTextColor(255, 255, 255);
+
+        cols.forEach(col => {
+          doc.text(col.titulo, x + 1, y + 4.1);
+          x += col.w;
+        });
+
+        doc.setTextColor(17, 24, 39);
+        y += h;
+        ultimaTabelaAtiva = true;
+      }
+
+
+      function calcularAlturaLinha(item) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.1);
+
+        const linhasAtividade = doc.splitTextToSize(String(item.atividade || '-'), cols[1].w - 2).length;
+        const maxLinhas = Math.max(1, Math.min(3, linhasAtividade));
+
+        return Math.max(6.2, 3.4 + maxLinhas * 3.25);
+      }
+
+      function textoCelula(texto, x, yTexto, largura, tamanho=5.9, estilo='normal', maxLinhas=3) {
+        doc.setFont('helvetica', estilo);
+        doc.setFontSize(tamanho);
+        doc.setTextColor(17, 24, 39);
+        const linhas = doc.splitTextToSize(String(texto || '-'), largura - 2);
+        doc.text(linhas.slice(0, maxLinhas), x + 1, yTexto);
+      }
+
+      function desenharLinhaTabela(item, zebra=false) {
+        const h = calcularAlturaLinha(item);
+        novaPaginaSeNecessario(h + 1, true);
+
+        let x = margin;
+
+        if (zebra) {
+          doc.setFillColor(249, 250, 251);
+          doc.rect(margin, y, pageW - margin * 2, h, 'F');
+        }
+
+        doc.setDrawColor(222, 222, 222);
+        doc.setLineWidth(0.12);
+
+        const valores = [
+          item.item,
+          item.atividade,
+          item.inicio || '-',
+          item.fim || '-',
+          item.status || '-',
+          item.realizado || '0%',
+          item.peso || '-'
+        ];
+
+        cols.forEach((col, idx) => {
+          doc.rect(x, y, col.w, h, 'S');
+          textoCelula(valores[idx], x, y + 3.8, col.w, idx === 1 ? 6.1 : 5.8, 'normal', idx === 1 ? 3 : 2);
+          x += col.w;
+        });
+
+        y += h;
+      }
+
+      if (!grupos.length) {
+        desenharCabecalhoRelatorio(null);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text('Nenhuma atividade encontrada para exportação.', margin, y + 8);
+      } else {
+        grupos.forEach((grupo, grupoIndex) => {
+          grupoAtualCabecalho = grupo;
+
+          // O cabeçalho grande com barra preta aparece somente no início do relatório.
+          // Nas páginas seguintes, o conteúdo continua limpo, sem repetir "EXTRATO DO CRONOGRAMA".
+          if (grupoIndex === 0) {
+            desenharCabecalhoRelatorio(grupo);
+          } else {
+            novaPagina(false);
+            y += 2;
+          }
+
+          grupo.tipos.forEach((grupoTipo, tipoIndex) => {
+            const numeroBase = obterNumeroTipo(grupoTipo.tipo, tipoIndex);
+            const tituloLimpo = limparTituloTipo(grupoTipo.tipo);
+
+            desenharTituloServico(numeroBase, tituloLimpo);
+
+            grupoTipo.atividades.forEach((atividade, atividadeIndex) => {
+              desenharLinhaTabela({
+                item: `${numeroBase}.${atividadeIndex + 1}`,
+                atividade: atividade.atividade || '-',
+                inicio: atividade.inicio || '-',
+                fim: atividade.fim || '-',
+                status: atividade.status || '-',
+                realizado: atividade.realizado || '0%',
+                peso: atividade.peso || '-'
+              }, atividadeIndex % 2 === 1);
+            });
+
+            y += 3;
+          });
+        });
+      }
+
+      const totalPaginas = doc.internal.getNumberOfPages();
+
+      for (let i = 1; i <= totalPaginas; i++) {
+        doc.setPage(i);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.5);
+        doc.setTextColor(90, 90, 90);
+        doc.text(`Página ${i} de ${totalPaginas}`, pageW - margin - 28, pageH - 5);
+        doc.text('Relatório gerado automaticamente pelo Painel de Cronograma.', margin, pageH - 5);
+      }
+
+      const nomeObra = String(obra || 'cronograma')
+        .normalize('NFD')
+        .replace(/[\\u0300-\\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .toLowerCase();
+
+      doc.save(`extrato_cronograma_${nomeObra || 'obra'}.pdf`);
+    }
+
+
+
+
+
+    function limparVisualizacaoNovaPlanilha() {
+      if (!dadosAtuais || !dadosAtuais.length) {
+        linhaSelecionadaNovaPlanilha = null;
+      }
+      document.querySelectorAll('.nova-planilha-view').forEach(el => el.remove());
+
+      document.querySelectorAll('.tabela-antiga-oculta').forEach(tabela => {
+        tabela.classList.remove('tabela-antiga-oculta');
+      });
+
+      const container = document.querySelector('.tabela-wrap');
+      if (container && (!dadosAtuais || !dadosAtuais.length)) {
+        container.innerHTML = '<div class="empty-state">Planilha limpa no sistema.</div>';
+      }
+    }
+
+
+    function renderizarNovaPlanilhaVerde() {
+      try {
+        if (!dadosAtuais || !dadosAtuais.length) {
+          limparVisualizacaoNovaPlanilha();
+          return;
+        }
+        const container = document.querySelector('.tabela-wrap');
+        if (!container || !dadosAtuais || !dadosAtuais.length) return;
+
+        const tabelaAntiga = container.querySelector('table');
+        if (tabelaAntiga) tabelaAntiga.classList.add('tabela-antiga-oculta');
+
+        // Remove todas as visualizações anteriores antes de criar a nova.
+        // Isso impede duplicação ao importar outro Excel ou trocar a aba online.
+        container.querySelectorAll('.nova-planilha-view').forEach(function(viewAntiga) {
+          viewAntiga.remove();
+        });
+
+        const idxSetor = localizarColuna('SETOR');
+        const idxLocal = localizarColuna('LOCAL');
+        const idxTipo = localizarColunaFlexivelNova(['TIPO DE SERVIÇO', 'TIPO DE SERVICO', 'TIPO DE ATIVIDADE', 'TIPO ATIVIDADE', 'TIPO SERVIÇO', 'TIPO SERVICO']);
+        const idxAtividade = localizarColuna('ATIVIDADE');
+        const idxDificuldade = localizarColuna('DIFICULDADE');
+        const idxInicio = localizarColuna('INICIO');
+        const idxFim = localizarColuna('FIM');
+        const idxStatus = localizarColuna('STATUS');
+        const idxRealizado = localizarColuna('REALIZADO');
+        const idxPeso = localizarColuna('PESO');
+
+        if (idxAtividade === -1) return;
+
+        const view = document.createElement('div');
+        view.className = 'nova-planilha-view';
+
+        const obra = obterValorMetaNova('OBRA') || '-';
+        const empresa = obterValorMetaNova('EMPRESA') || 'Integra Engenharia';
+
+        view.innerHTML = `
+          <div class="nova-planilha-meta">
+            <div class="nova-meta-box"><span>Obra:</span><strong>${escapeHtml(obra)}</strong></div>
+            <div class="nova-meta-box"><span>Empresa:</span><strong>${escapeHtml(empresa)}</strong></div>
+          </div>
+          <table class="nova-planilha-table">
+            <thead>
+              <tr>
+                <th>Setor</th>
+                <th>Local</th>
+                <th>Tipo de Serviço</th>
+                <th>Atividade</th>
+                <th>Dificuldade</th>
+                <th>Início</th>
+                <th>Fim</th>
+                <th>Status</th>
+                <th>Realizado</th>
+                <th>Peso</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        `;
+
+        const tbody = view.querySelector('tbody');
+        const linhas = obterLinhasAtividade();
+
+        linhas.forEach(linhaIndex => {
+          const linha = dadosAtuais[linhaIndex];
+
+          const setorBruto = idxSetor !== -1 ? String(linha[idxSetor] || '').trim() : '';
+          const localBruto = idxLocal !== -1 ? String(linha[idxLocal] || '').trim() : '';
+          const tipoBruto = idxTipo !== -1 ? String(linha[idxTipo] || '').trim() : '';
+
+          const atividade = String(linha[idxAtividade] || '').trim();
+          if (!atividade) return;
+
+          const tr = document.createElement('tr');
+          tr.dataset.linha = String(linhaIndex);
+          if (linhaSelecionadaNovaPlanilha === linhaIndex) {
+            tr.classList.add('linha-selecionada');
+          }
+          tr.addEventListener('click', function() {
+            selecionarLinhaNovaPlanilha(linhaIndex);
+          });
+          tr.innerHTML = `
+            <td><div class="nova-planilha-texto ${setorBruto ? '' : 'muted'}">${escapeHtml(setorBruto)}</div></td>
+            <td><div class="nova-planilha-texto ${localBruto ? '' : 'muted'}">${escapeHtml(localBruto)}</div></td>
+            <td><div class="nova-planilha-texto ${tipoBruto ? '' : 'muted'}">${escapeHtml(tipoBruto)}</div></td>
+            <td><div class="nova-planilha-texto">${escapeHtml(atividade)}</div></td>
+            <td>${criarSelectNova(linhaIndex, idxDificuldade, ['Leve', 'Média', 'Pesada', 'Crítica'], normalizarValorDificuldade(linha[idxDificuldade] || ''))}</td>
+            <td>${criarInputNova(linhaIndex, idxInicio, linha[idxInicio] || '')}</td>
+            <td>${criarInputNova(linhaIndex, idxFim, linha[idxFim] || '')}</td>
+            <td>${criarSelectNova(linhaIndex, idxStatus, ['Não iniciado', 'Pendente', 'Em andamento', 'Concluído', 'Parado'], normalizarValorStatus(linha[idxStatus] || ''))}</td>
+            <td>
+              ${criarSelectNova(linhaIndex, idxRealizado, ['0%', '10%', '25%', '50%', '75%', '100%'], normalizarValorRealizado(linha[idxRealizado] || ''))}
+            </td>
+            <td>
+              <span class="nova-planilha-peso">${escapeHtml(idxPeso !== -1 ? String(linha[idxPeso] || '') : '')}</span>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+
+        container.appendChild(view);
+
+        view.querySelectorAll('select, input').forEach(campo => {
+          if (campo.tagName === 'SELECT') {
+            campo.addEventListener('change', atualizarMatrizNovaPlanilha);
+          } else {
+            campo.addEventListener('input', atualizarMatrizNovaPlanilha);
+            campo.addEventListener('change', atualizarMatrizNovaPlanilha);
+          }
+        });
+      } catch (erro) {
+        console.warn('Erro ao renderizar nova planilha verde:', erro);
+      }
+    }
+
+    function selecionarLinhaNovaPlanilha(linhaIndex) {
+      linhaSelecionadaNovaPlanilha = linhaIndex;
+
+      document.querySelectorAll('.nova-planilha-table tbody tr').forEach(function(tr) {
+        const selecionada = Number(tr.dataset.linha) === linhaIndex;
+        tr.classList.toggle('linha-selecionada', selecionada);
+      });
+    }
+
+
+    function criarInputNova(linha, coluna, valor) {
+      if (coluna === -1) return '<input type="text" value="" disabled>';
+      return `<input type="text" value="${escapeHtml(String(valor || ''))}" data-linha="${linha}" data-coluna="${coluna}">`;
+    }
+
+    function criarSelectNova(linha, coluna, opcoes, valor) {
+      if (coluna === -1) return '<select disabled><option>-</option></select>';
+
+      const valorNormalizado = String(valor || '').trim();
+      let encontrado = false;
+
+      const options = opcoes.map(opcao => {
+        const selected = normalizarCabecalho(opcao) === normalizarCabecalho(valorNormalizado);
+        if (selected) encontrado = true;
+        return `<option value="${escapeHtml(opcao)}" ${selected ? 'selected' : ''}>${escapeHtml(opcao)}</option>`;
+      }).join('');
+
+      const extra = valorNormalizado && !encontrado
+        ? `<option value="${escapeHtml(valorNormalizado)}" selected>${escapeHtml(valorNormalizado)}</option>`
+        : '';
+
+      return `<select data-linha="${linha}" data-coluna="${coluna}">${options}${extra}</select>`;
+    }
+
+    function atualizarMatrizNovaPlanilha(evento) {
+      const campo = evento.target;
+      const linha = Number(campo.dataset.linha);
+      const coluna = Number(campo.dataset.coluna);
+
+      if (!Number.isFinite(linha) || !Number.isFinite(coluna) || !dadosAtuais[linha]) return;
+
+      dadosAtuais[linha][coluna] = campo.value;
+
+      const cabecalhoColuna = normalizarCabecalho((dadosAtuais[headerIndexAtual] || [])[coluna] || '');
+
+      if (cabecalhoColuna === 'DIFICULDADE') {
+        const scrollJanelaAntes = window.scrollY;
+        const tabelaWrap = document.querySelector('.tabela-wrap');
+        const scrollTabelaXAntes = tabelaWrap ? tabelaWrap.scrollLeft : 0;
+        const scrollTabelaYAntes = tabelaWrap ? tabelaWrap.scrollTop : 0;
+
+        calcularPesosEProgresso(false, false);
+
+        setTimeout(() => {
+          renderizarNovaPlanilhaVerde();
+          const tabelaWrapDepois = document.querySelector('.tabela-wrap');
+          if (tabelaWrapDepois) {
+            tabelaWrapDepois.scrollLeft = scrollTabelaXAntes;
+            tabelaWrapDepois.scrollTop = scrollTabelaYAntes;
+          }
+          window.scrollTo(0, scrollJanelaAntes);
+        }, 0);
+        return;
+      }
+
+      if (typeof calcularProgressoGeralSemRenderizar === 'function') {
+        const progresso = calcularProgressoGeralSemRenderizar();
+        atualizarResumoGeral(progresso);
+        if (typeof calcularPrevistoAtual === 'function') calcularPrevistoAtual(progresso);
+        publicarCronogramaNoDashboard();
+      } else if (typeof atualizarIndicadoresAposCarregarPlanilha === 'function') {
+        atualizarIndicadoresAposCarregarPlanilha();
+      }
+    }
+
+    function localizarColunaFlexivelNova(nomes) {
+      for (const nome of nomes) {
+        const idx = localizarColuna(nome);
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    }
+
+
+    function obterValorMetaNova(nome) {
+      const alvo = normalizarCabecalho(nome);
+
+      // Padrão da planilha: nome da obra fica em B1.
+      if (alvo === 'OBRA' && dadosAtuais && dadosAtuais[0] && dadosAtuais[0][1]) {
+        return String(dadosAtuais[0][1] || '').trim();
+      }
+
+      // Padrão da planilha: nome da empresa costuma ficar próximo do campo EMPRESA.
+      if (alvo === 'EMPRESA') {
+        for (let i = 0; i < Math.min(3, dadosAtuais.length); i++) {
+          const linha = dadosAtuais[i] || [];
+          for (let j = 0; j < linha.length; j++) {
+            if (normalizarCabecalho(linha[j]) === 'EMPRESA') {
+              const valorDireita = String(linha[j + 1] || '').trim();
+              const valorDuasCasas = String(linha[j + 2] || '').trim();
+              if (valorDireita) return valorDireita;
+              if (valorDuasCasas) return valorDuasCasas;
+            }
+          }
+        }
+      }
+
+      for (let i = 0; i < Math.min(headerIndexAtual, dadosAtuais.length); i++) {
+        const linha = dadosAtuais[i] || [];
+
+        for (let j = 0; j < linha.length; j++) {
+          if (normalizarCabecalho(linha[j]) === alvo) {
+            return String(linha[j + 1] || '').trim();
+          }
+        }
+      }
+
+      return '';
+    }
+
+
+
+    function exportarExcelPlanilhaAtual() {
+      if (!dadosAtuais.length) {
+        statusEl.textContent = 'Carregue uma planilha antes de exportar para Excel.';
+        return;
+      }
+
+      try {
+        if (typeof XLSX === 'undefined') {
+          statusEl.textContent = 'Biblioteca Excel não carregou. Verifique sua conexão com a internet.';
+          return;
+        }
+
+        const dadosParaExportar = dadosAtuais.map(linha => {
+          return linha.map(celula => {
+            if (celula === null || celula === undefined) return '';
+            return celula;
+          });
+        });
+
+        const worksheet = XLSX.utils.aoa_to_sheet(dadosParaExportar);
+        const workbook = XLSX.utils.book_new();
+
+        const nomeAba = limparNomeAbaExcel(selectAba && selectAba.value ? selectAba.value : 'Cronograma');
+        XLSX.utils.book_append_sheet(workbook, worksheet, nomeAba);
+
+        ajustarLarguraColunasExcel(worksheet, dadosParaExportar);
+
+        const nomeArquivo = montarNomeArquivoExcel();
+        XLSX.writeFile(workbook, nomeArquivo);
+
+        statusEl.textContent = `Planilha Excel exportada: ${nomeArquivo}`;
+      } catch (erro) {
+        console.error('Erro ao exportar Excel:', erro);
+        statusEl.textContent = 'Erro ao exportar a planilha para Excel.';
+      }
+    }
+
+    function limparNomeAbaExcel(nome) {
+      const limpo = String(nome || 'Cronograma')
+        .replace(/[\\/:?*\\[\\]]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      return (limpo || 'Cronograma').substring(0, 31);
+    }
+
+    function montarNomeArquivoExcel() {
+      const base = (selectAba && selectAba.value ? selectAba.value : obterValorMetaExtratoExcel('OBRA') || 'cronograma')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .toLowerCase();
+
+      const hoje = new Date();
+      const ano = hoje.getFullYear();
+      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoje.getDate()).padStart(2, '0');
+
+      return `${base || 'cronograma'}_${ano}${mes}${dia}.xlsx`;
+    }
+
+    function obterValorMetaExtratoExcel(nome) {
+      const alvo = normalizarCabecalho(nome);
+
+      for (let i = 0; i < headerIndexAtual; i++) {
+        const linha = dadosAtuais[i] || [];
+
+        for (let j = 0; j < linha.length; j++) {
+          if (normalizarCabecalho(linha[j]) === alvo) {
+            return String(linha[j + 1] || '').trim();
+          }
+        }
+      }
+
+      return '';
+    }
+
+    function ajustarLarguraColunasExcel(worksheet, dados) {
+      const totalColunas = Math.max(...dados.map(linha => linha.length), 0);
+      const larguras = [];
+
+      for (let col = 0; col < totalColunas; col++) {
+        let maior = 10;
+
+        for (let row = 0; row < dados.length; row++) {
+          const valor = String(dados[row][col] || '');
+          maior = Math.max(maior, Math.min(valor.length + 2, 45));
+        }
+
+        larguras.push({ wch: maior });
+      }
+
+      worksheet['!cols'] = larguras;
+    }
+
+    function normalizarValorDificuldade(valor) {
+      const n = normalizarCabecalho(valor);
+
+      if (n.includes('CRITICA')) return 'Crítica';
+      if (n.includes('PESADA')) return 'Pesada';
+      if (n.includes('MEDIA')) return 'Média';
+      if (n.includes('LEVE')) return 'Leve';
+
+      return String(valor || '').trim();
+    }
+
+    function normalizarValorStatus(valor) {
+      const n = normalizarCabecalho(valor);
+
+      if (n.includes('CONCLUIDO')) return 'Concluído';
+      if (n.includes('ANDAMENTO')) return 'Em andamento';
+      if (n.includes('PENDENTE')) return 'Pendente';
+      if (n.includes('NAO INICIADO')) return 'Não iniciado';
+
+      return String(valor || '').trim();
+    }
+
+    function normalizarValorRealizado(valor) {
+      const texto = String(valor || '').trim();
+      if (!texto) return '0%';
+
+      const numero = extrairPercentual(texto);
+
+      if (numero >= 100) return '100%';
+      if (numero >= 75) return '75%';
+      if (numero >= 50) return '50%';
+      if (numero >= 25) return '25%';
+      if (numero >= 10) return '10%';
+
+      return '0%';
+    }
+
+    function garantirValorSelect(select, valorDesejado) {
+      if (!select) return;
+
+      const valorTexto = String(valorDesejado || '').trim();
+      if (!valorTexto) return;
+
+      const normalizado = normalizarCabecalho(valorTexto);
+      let encontrou = false;
+
+      Array.from(select.options).forEach(option => {
+        if (
+          normalizarCabecalho(option.value) === normalizado ||
+          normalizarCabecalho(option.textContent) === normalizado
+        ) {
+          select.value = option.value;
+          encontrou = true;
+        }
+      });
+
+      if (!encontrou) {
+        const option = document.createElement('option');
+        option.value = valorTexto;
+        option.textContent = valorTexto;
+        select.appendChild(option);
+        select.value = valorTexto;
+      }
+
+      select.disabled = false;
+      select.removeAttribute('disabled');
+    }
+
+    function reaplicarValoresImportadosNosCampos() {
+      try {
+        const idxDificuldade = localizarColuna('DIFICULDADE');
+        const idxStatus = localizarColuna('STATUS');
+        const idxRealizado = localizarColuna('REALIZADO');
+
+        const linhas = obterLinhasAtividade();
+        const mapaLinhas = new Set(linhas.map(String));
+
+        document.querySelectorAll('.tabela-wrap select, .tabela-wrap input').forEach(campo => {
+          campo.disabled = false;
+          campo.removeAttribute('disabled');
+          campo.style.pointerEvents = 'auto';
+          campo.style.opacity = '1';
+        });
+
+        document.querySelectorAll('[data-linha], [data-row]').forEach(campo => {
+          const linha = Number(campo.dataset.linha ?? campo.dataset.row);
+          const coluna = Number(campo.dataset.coluna ?? campo.dataset.col);
+
+          if (!Number.isFinite(linha) || !Number.isFinite(coluna) || !dadosAtuais[linha]) return;
+
+          const valorOriginal = dadosAtuais[linha][coluna];
+
+          if (campo.tagName === 'SELECT') {
+            if (coluna === idxDificuldade) {
+              garantirValorSelect(campo, normalizarValorDificuldade(valorOriginal));
+            } else if (coluna === idxStatus) {
+              garantirValorSelect(campo, normalizarValorStatus(valorOriginal));
+            } else if (coluna === idxRealizado) {
+              garantirValorSelect(campo, normalizarValorRealizado(valorOriginal));
+            }
+          }
+        });
+      } catch (erro) {
+        console.warn('Não foi possível reaplicar valores importados nos campos:', erro);
+      }
+    }
+
+    function atualizarIndicadoresAposCarregarPlanilha() {
+      try {
+        if (!dadosAtuais || !dadosAtuais.length) {
+          resetarIndicadoresPainel();
+          return;
+        }
+
+        const progresso = calcularProgressoGeralSemRenderizar();
+        atualizarResumoGeral(progresso);
+
+        if (typeof calcularPrevistoAtual === 'function') {
+          calcularPrevistoAtual(progresso);
+        }
+
+        publicarCronogramaNoDashboard();
+      } catch (erro) {
+        console.warn('Erro ao atualizar indicadores após carregar planilha:', erro);
+      }
+    }
+
+    function calcularProgressoGeralSemRenderizar() {
+      const idxPeso = localizarColuna('PESO');
+      const idxDificuldade = localizarColuna('DIFICULDADE');
+      const idxStatus = localizarColuna('STATUS');
+      const idxRealizado = localizarColuna('REALIZADO');
+      const linhas = obterLinhasAtividade();
+
+      if (!linhas.length) return 0;
+
+      let progressoGeral = 0;
+      let somaPesoInformado = 0;
+
+      if (idxPeso !== -1) {
+        for (const linhaIndex of linhas) {
+          somaPesoInformado += extrairPercentual(dadosAtuais[linhaIndex][idxPeso]);
+        }
+      }
+
+      if (idxPeso !== -1 && somaPesoInformado > 0) {
+        for (const linhaIndex of linhas) {
+          const peso = extrairPercentual(dadosAtuais[linhaIndex][idxPeso]);
+          const realizado = obterRealizadoDaLinha(linhaIndex, idxStatus, idxRealizado);
+          progressoGeral += peso * (realizado / 100);
+        }
+
+        return Math.max(0, Math.min(100, progressoGeral));
+      }
+
+      let somaFatores = 0;
+      const fatores = [];
+
+      for (const linhaIndex of linhas) {
+        const dificuldade = idxDificuldade !== -1 ? normalizarCabecalho(dadosAtuais[linhaIndex][idxDificuldade] || 'LEVE') : 'LEVE';
+        const fator = PESOS_DIFICULDADE[dificuldade] ?? 1;
+        fatores.push({ linhaIndex, fator });
+        somaFatores += fator;
+      }
+
+      if (somaFatores <= 0) return 0;
+
+      for (const item of fatores) {
+        const pesoPercentual = (item.fator / somaFatores) * 100;
+        const realizado = obterRealizadoDaLinha(item.linhaIndex, idxStatus, idxRealizado);
+        progressoGeral += pesoPercentual * (realizado / 100);
+      }
+
+      return Math.max(0, Math.min(100, progressoGeral));
+    }
+
+    function obterRealizadoDaLinha(linhaIndex, idxStatus, idxRealizado) {
+      if (idxStatus !== -1 && normalizarCabecalho(dadosAtuais[linhaIndex][idxStatus] || '') === 'CONCLUIDO') {
+        return 100;
+      }
+
+      if (idxRealizado !== -1) {
+        return extrairPercentual(dadosAtuais[linhaIndex][idxRealizado]);
+      }
+
+      return 0;
+    }
+
+
+    function resetarIndicadoresPainel() {
+      if (!dadosAtuais || !dadosAtuais.length) limparVisualizacaoNovaPlanilha();
+      if (metricRealizadoTopo) metricRealizadoTopo.textContent = '0,00%';
+      if (metricPrevistoTopo) metricPrevistoTopo.textContent = '0,00%';
+      if (typeof metricAConcluirTopo !== 'undefined' && metricAConcluirTopo) metricAConcluirTopo.textContent = '100,00%';
+      if (metricAtividadesTopo) metricAtividadesTopo.textContent = '0';
+
+      if (typeof metricDataPrevistoTopo !== 'undefined' && metricDataPrevistoTopo) {
+        metricDataPrevistoTopo.textContent = '--/--';
+      }
+
+      const statusBox = document.getElementById('statusCronogramaMini');
+      if (statusBox) {
+        statusBox.classList.remove('atrasado', 'adiantado');
+        statusBox.classList.add('em-dia');
+        statusBox.innerHTML = '<span class="status-dot-mini"></span><strong>EM DIA</strong><small>Previsto x realizado</small>';
+      }
+
+      if (resumoGeralEl) {
+        resumoGeralEl.textContent = 'PROGRESSO GERAL DA OBRA: 0,00%';
+      }
+    }
+
+
+    function obterLinhasAtividade() {
+      const linhasAtividade = [];
+      for (let i = headerIndexAtual + 1; i < dadosAtuais.length; i++) {
+        const linha = dadosAtuais[i];
+        const temConteudo = linha.some(valor => String(valor || '').trim() !== '');
+        if (temConteudo) linhasAtividade.push(i);
+      }
+      return linhasAtividade;
+    }
+
+    function atualizarResumoGeral(valor=0) {
+      const percentual = formatarPercentual(valor);
+      const saldo = Math.max(0, 100 - Number(valor || 0));
+
+      if (resumoGeralEl) {
+        resumoGeralEl.textContent = `PROGRESSO GERAL DA OBRA: ${percentual}`;
+      }
+
+      if (typeof metricRealizadoTopo !== 'undefined' && metricRealizadoTopo) {
+        metricRealizadoTopo.textContent = percentual;
+      }
+
+      if (typeof metricAConcluirTopo !== 'undefined' && metricAConcluirTopo) {
+        metricAConcluirTopo.textContent = formatarPercentual(saldo);
+      }
+
+      if (typeof metricAtividadesTopo !== 'undefined' && metricAtividadesTopo) {
+        try {
+          metricAtividadesTopo.textContent = String(obterLinhasAtividade().length || 0);
+        } catch (e) {
+          metricAtividadesTopo.textContent = '0';
+        }
+      }
+    }
+
+    function localizarColuna(nomeAlvo) {
+      const cabecalho = dadosAtuais[headerIndexAtual] || [];
+      const alvo = normalizarCabecalho(nomeAlvo);
+      for (let i = 0; i < cabecalho.length; i++) {
+        if (normalizarCabecalho(cabecalho[i]) === alvo) return i;
+      }
+      return -1;
+    }
+
+    function gerarDiasUteis(dataInicialISO, quantidadeDiasUteis) {
+      const dias = [];
+      const atual = criarDataLocal(dataInicialISO);
+      while (dias.length < quantidadeDiasUteis) {
+        if (ehDiaUtil(atual)) dias.push(formatarISO(atual));
+        atual.setDate(atual.getDate() + 1);
+      }
+      return dias;
+    }
+
+    function ehDiaUtil(data) {
+      const diaSemana = data.getDay();
+      if (diaSemana === 0 || diaSemana === 6) return false;
+      const feriados = obterFeriadosBrasil(data.getFullYear());
+      return !feriados.has(formatarISO(data));
+    }
+
+    function obterFeriadosBrasil(ano) {
+      const pascoa = calcularPascoa(ano);
+      const carnavalSeg = adicionarDias(pascoa, -48);
+      const carnavalTer = adicionarDias(pascoa, -47);
+      const sextaSanta = adicionarDias(pascoa, -2);
+      const corpusChristi = adicionarDias(pascoa, 60);
+      const feriados = [
+        `${ano}-01-01`, `${ano}-04-21`, `${ano}-05-01`, `${ano}-09-07`,
+        `${ano}-10-12`, `${ano}-11-02`, `${ano}-11-15`, `${ano}-11-20`, `${ano}-12-25`,
+        formatarISO(carnavalSeg), formatarISO(carnavalTer), formatarISO(sextaSanta), formatarISO(corpusChristi)
+      ];
+      return new Set(feriados);
+    }
+
+    function calcularPascoa(ano) {
+      const a = ano % 19;
+      const b = Math.floor(ano / 100);
+      const c = ano % 100;
+      const d = Math.floor(b / 4);
+      const e = b % 4;
+      const f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4);
+      const k = c % 4;
+      const l = (32 + 2 * e + 2 * i - h - k) % 7;
+      const m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const mes = Math.floor((h + l - 7 * m + 114) / 31);
+      const dia = ((h + l - 7 * m + 114) % 31) + 1;
+      return new Date(ano, mes - 1, dia);
+    }
+
+    function adicionarDias(data, dias) {
+      const nova = new Date(data.getFullYear(), data.getMonth(), data.getDate());
+      nova.setDate(nova.getDate() + dias);
+      return nova;
+    }
+
+    function criarDataLocal(iso) {
+      const [ano, mes, dia] = iso.split('-').map(Number);
+      return new Date(ano, mes - 1, dia);
+    }
+
+    function formatarISO(data) {
+      const ano = data.getFullYear();
+      const mes = String(data.getMonth() + 1).padStart(2, '0');
+      const dia = String(data.getDate()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    function parseDataBR(texto) {
+      const valor = String(texto || '').trim();
+      const match = valor.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!match) return null;
+      const dia = Number(match[1]);
+      const mes = Number(match[2]) - 1;
+      const ano = Number(match[3]);
+      const data = new Date(ano, mes, dia);
+      data.setHours(0, 0, 0, 0);
+      if (data.getFullYear() !== ano || data.getMonth() !== mes || data.getDate() !== dia) return null;
+      return data;
+    }
+
+    function extrairPercentual(valor) {
+      const texto = String(valor || '').replace(',', '.');
+      const numero = parseFloat(texto.replace('%', '').trim());
+      if (Number.isNaN(numero)) return 0;
+      return Math.max(0, Math.min(100, numero));
+    }
+
+    function formatarPercentual(valor) {
+      return `${Number(valor || 0).toFixed(2).replace('.', ',')}%`;
+    }
+
+    function formatarDataBR(valor) {
+      if (!valor) return '';
+      if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+        const [ano, mes, dia] = valor.split('-');
+        return `${dia}/${mes}/${ano}`;
+      }
+      if (valor instanceof Date) {
+        return `${String(valor.getDate()).padStart(2, '0')}/${String(valor.getMonth() + 1).padStart(2, '0')}/${valor.getFullYear()}`;
+      }
+      return String(valor);
+    }
+
+    function encontrarLinhaCabecalho(matriz) {
+      for (let i = 0; i < matriz.length; i++) {
+        const linhaNormalizada = matriz[i].map(normalizarCabecalho);
+        const temAtividade = linhaNormalizada.includes('ATIVIDADE');
+        const temSetorOuLocal = linhaNormalizada.includes('SETOR') || linhaNormalizada.includes('LOCAL');
+        if (temAtividade || temSetorOuLocal) return i;
+      }
+      return 0;
+    }
+
+    function normalizarMatriz(matriz) {
+      const totalColunas = Math.max(...matriz.map(linha => linha.length), 0);
+      return matriz.map(linha => {
+        const novaLinha = [...linha];
+        while (novaLinha.length < totalColunas) novaLinha.push('');
+        return novaLinha;
+      });
+    }
+
+    function renderizarTabela(dados) {
+      if (!dados.length) {
+        saida.innerHTML = '<div class="vazio">Nenhum dado disponível.</div>';
+        return;
+      }
+
+      const linhasMeta = dados.slice(0, headerIndexAtual);
+      const cabecalho = dados[headerIndexAtual] || [];
+      const linhas = dados.slice(headerIndexAtual + 1);
+      let html = '<table><tbody>';
+
+      if (linhasMeta.length > 0) {
+        linhasMeta.forEach((linha, metaIndex) => {
+          html += '<tr class="linha-meta">';
+          linha.forEach((valor, colIndex) => {
+            const classe = obterClasseLargura(cabecalho[colIndex], colIndex);
+            html += `<td class="${classe}">${renderizarMetaSimples(valor, metaIndex, colIndex)}</td>`;
+          });
+          html += '</tr>';
+        });
+      }
+
+      html += '<tr class="linha-cabecalho">';
+      cabecalho.forEach((valor, colIndex) => {
+        const classe = obterClasseLargura(valor, colIndex);
+        html += `<td class="${classe}">${escapeHtml(valor)}</td>`;
+      });
+      html += '</tr>';
+
+      if (linhas.length === 0) {
+        html += `<tr><td colspan="${Math.max(cabecalho.length, 1)}">Sem linhas para exibir.</td></tr>`;
+      } else {
+        linhas.forEach((linha, linhaIndexRelativa) => {
+          const linhaReal = headerIndexAtual + 1 + linhaIndexRelativa;
+          html += '<tr>';
+          cabecalho.forEach((coluna, colIndex) => {
+            const valor = linha[colIndex] ?? '';
+            const cabecalhoNormalizado = normalizarCabecalho(dados[headerIndexAtual][colIndex]);
+            const classe = obterClasseLargura(coluna, colIndex);
+
+            if (cabecalhoNormalizado === 'PESO') {
+              html += `<td class="col-peso ${classe}">${escapeHtml(valor)}</td>`;
+            } else if (CAMPOS_EDITAVEIS.includes(cabecalhoNormalizado)) {
+              html += `<td class="col-editavel ${classe}">${montarCampoEditavel(cabecalhoNormalizado, valor, linhaReal, colIndex)}</td>`;
+            } else {
+              html += `<td class="${classe}">${escapeHtml(valor)}</td>`;
+            }
+          });
+          html += '</tr>';
+        });
+      }
+
+      html += '</tbody></table>';
+      saida.innerHTML = html;
+      vincularEdicao();
+    }
+
+    function renderizarMetaSimples(valor, linha, coluna) {
+      const texto = String(valor || '');
+      const normalizado = normalizarCabecalho(texto);
+
+      if (normalizado === 'OBRA') {
+        const proximoValor = String(dadosAtuais[linha][coluna + 1] || '');
+        return `<div class="meta-inline"><span class="meta-rotulo">OBRA:</span><input class="meta-valor meta-valor-obra" type="text" value="${escapeAtributo(proximoValor)}" data-linha="${linha}" data-coluna="${coluna + 1}" maxlength="120"></div>`;
+      }
+
+      if (normalizado === 'EMPRESA') {
+        const proximoValor = String(dadosAtuais[linha][coluna + 1] || '');
+        return `<div class="meta-inline"><span class="meta-rotulo">EMPRESA:</span><input class="meta-valor meta-valor-empresa" type="text" value="${escapeAtributo(proximoValor)}" data-linha="${linha}" data-coluna="${coluna + 1}" maxlength="80"></div>`;
+      }
+
+      const valorEsquerda = coluna > 0 ? String(dadosAtuais[linha][coluna - 1] || '') : '';
+      const normalizadoEsquerda = normalizarCabecalho(valorEsquerda);
+      if (normalizadoEsquerda === 'OBRA' || normalizadoEsquerda === 'EMPRESA') return '';
+      return escapeHtml(texto);
+    }
+
+    function montarCampoEditavel(tipo, valor, linha, coluna) {
+      if (tipo === 'STATUS') {
+        const opcoes = OPCOES_STATUS.map(item => {
+          const selected = String(item) === String(valor) ? 'selected' : '';
+          return `<option value="${escapeHtml(item)}" ${selected}>${escapeHtml(item)}</option>`;
+        }).join('');
+        return `<select class="campo-select" data-linha="${linha}" data-coluna="${coluna}">${opcoes}</select>`;
+      }
+
+      if (tipo === 'DIFICULDADE') {
+        const opcoes = OPCOES_DIFICULDADE.map(item => {
+          const selected = String(item) === String(valor) ? 'selected' : '';
+          return `<option value="${escapeHtml(item)}" ${selected}>${escapeHtml(item)}</option>`;
+        }).join('');
+        return `<select class="campo-select" data-linha="${linha}" data-coluna="${coluna}">${opcoes}</select>`;
+      }
+
+      if (tipo === 'REALIZADO') {
+        const current = String(valor || '').trim();
+        const opcoes = [`<option value="" ${current === '' ? 'selected' : ''}>Selecione</option>`].concat(
+          OPCOES_REALIZADO.map(item => {
+            const selected = item === current ? 'selected' : '';
+            return `<option value="${item}" ${selected}>${item}</option>`;
+          })
+        ).join('');
+        return `<select class="campo-select" data-linha="${linha}" data-coluna="${coluna}">${opcoes}</select>`;
+      }
+
+      return `<input class="campo-editavel" type="text" value="${escapeAtributo(valor)}" data-linha="${linha}" data-coluna="${coluna}">`;
+    }
+
+    function vincularEdicao() {
+      const campos = document.querySelectorAll('.campo-editavel, .campo-select, .meta-valor');
+      campos.forEach(campo => {
+        campo.addEventListener('input', atualizarMatriz);
+        campo.addEventListener('change', atualizarMatriz);
+      });
+    }
+
+
+    function atualizarMatriz(evento) {
+      const campo = evento.target;
+      const linha = Number(campo.dataset.linha);
+      const coluna = Number(campo.dataset.coluna);
+
+      if (!dadosAtuais[linha]) return;
+
+      dadosAtuais[linha][coluna] = campo.value;
+
+      const cabecalhoColuna = normalizarCabecalho((dadosAtuais[headerIndexAtual] || [])[coluna] || '');
+
+      if (cabecalhoColuna === 'DIFICULDADE') {
+        const scrollJanelaAntes = window.scrollY;
+        calcularPesosEProgresso(false, false);
+        window.scrollTo(0, scrollJanelaAntes);
+        return;
+      }
+
+      const progresso = calcularProgressoGeralSemRenderizar();
+      atualizarResumoGeral(progresso);
+
+      if (typeof calcularPrevistoAtual === 'function') {
+        calcularPrevistoAtual(progresso);
+      }
+
+      publicarCronogramaNoDashboard();
+    }
+
+
+    /* =========================================================
+       PONTE DE COMUNICAÇÃO COM O MÓDULO DASHBOARD
+       Salva os dados tratados do cronograma no navegador.
+       O dashboard lê a chave: dadosCronograma
+       ========================================================= */
+
+    function limparDadosDashboardCronograma() {
+      try {
+        localStorage.removeItem(CHAVE_DADOS_CRONOGRAMA_DASHBOARD);
+        localStorage.removeItem(CHAVE_RESUMO_CRONOGRAMA_DASHBOARD);
+      } catch (erro) {
+        console.warn('Não foi possível limpar os dados do dashboard:', erro);
+      }
+    }
+
+    function publicarCronogramaNoDashboard() {
+      try {
+        if (!dadosAtuais || !dadosAtuais.length) {
+          limparDadosDashboardCronograma();
+          return;
+        }
+
+        const linhas = obterLinhasAtividade();
+        if (!linhas.length) {
+          limparDadosDashboardCronograma();
+          return;
+        }
+
+        const idxSetor = localizarColuna('SETOR');
+        const idxLocal = localizarColuna('LOCAL');
+        const idxAtividade = localizarColuna('ATIVIDADE');
+        const idxDificuldade = localizarColuna('DIFICULDADE');
+        const idxInicio = localizarColuna('INICIO');
+        const idxFim = localizarColuna('FIM');
+        const idxStatus = localizarColuna('STATUS');
+        const idxRealizado = localizarColuna('REALIZADO');
+        const idxPeso = localizarColuna('PESO');
+
+        const atividades = linhas.map(linhaIndex => {
+          const status = obterValorCelulaDashboard(linhaIndex, idxStatus) || 'Pendente';
+          const realizado = idxRealizado !== -1
+            ? obterValorCelulaDashboard(linhaIndex, idxRealizado)
+            : (normalizarCabecalho(status) === 'CONCLUIDO' ? '100%' : '0%');
+
+          return {
+            SETOR: obterValorCelulaDashboard(linhaIndex, idxSetor),
+            LOCAL: obterValorCelulaDashboard(linhaIndex, idxLocal),
+            ATIVIDADE: obterValorCelulaDashboard(linhaIndex, idxAtividade),
+            DIFICULDADE: obterValorCelulaDashboard(linhaIndex, idxDificuldade),
+            INICIO: obterValorCelulaDashboard(linhaIndex, idxInicio),
+            FIM: obterValorCelulaDashboard(linhaIndex, idxFim),
+            STATUS: status,
+            REALIZADO: realizado || '0%',
+            PESO: obterValorCelulaDashboard(linhaIndex, idxPeso),
+            LINHA_ORIGEM: linhaIndex
+          };
+        }).filter(item => {
+          return Object.values(item).some(valor => String(valor || '').trim() !== '');
+        });
+
+        const progressoRealizado = calcularProgressoGeralSemRenderizar();
+        let progressoPrevisto = 0;
+
+        try {
+          progressoPrevisto = typeof calcularPrevistoAtual === 'function'
+            ? calcularPrevistoAtual(progressoRealizado)
+            : 0;
+        } catch (erroPrevisto) {
+          progressoPrevisto = 0;
+        }
+
+        const total = atividades.length;
+        const concluidas = atividades.filter(item => normalizarCabecalho(item.STATUS) === 'CONCLUIDO').length;
+        const atrasadas = atividades.filter(item => normalizarCabecalho(item.STATUS) === 'ATRASADO').length;
+        const andamento = atividades.filter(item => normalizarCabecalho(item.STATUS) === 'EM ANDAMENTO').length;
+        const pendentes = Math.max(0, total - concluidas - atrasadas - andamento);
+
+        const resumo = {
+          OBRA: obterValorMetaDashboard('OBRA'),
+          EMPRESA: obterValorMetaDashboard('EMPRESA'),
+          ABA: selectAba ? selectAba.value : '',
+          ATUALIZADO_EM: new Date().toISOString(),
+          TOTAL_ATIVIDADES: total,
+          CONCLUIDAS: concluidas,
+          EM_ANDAMENTO: andamento,
+          ATRASADAS: atrasadas,
+          PENDENTES: pendentes,
+          REALIZADO_GERAL: formatarPercentual(progressoRealizado),
+          PREVISTO_GERAL: formatarPercentual(progressoPrevisto),
+          DIFERENCA: formatarPercentual(Number(progressoRealizado || 0) - Number(progressoPrevisto || 0)),
+          SITUACAO: obterSituacaoDashboard(progressoRealizado, progressoPrevisto)
+        };
+
+        localStorage.setItem(CHAVE_DADOS_CRONOGRAMA_DASHBOARD, JSON.stringify(atividades));
+        localStorage.setItem(CHAVE_RESUMO_CRONOGRAMA_DASHBOARD, JSON.stringify(resumo));
+      } catch (erro) {
+        console.warn('Erro ao publicar dados para o dashboard:', erro);
+      }
+    }
+
+    function obterValorCelulaDashboard(linhaIndex, colunaIndex) {
+      if (colunaIndex === -1 || !dadosAtuais[linhaIndex]) return '';
+      return String(dadosAtuais[linhaIndex][colunaIndex] ?? '').trim();
+    }
+
+    function obterValorMetaDashboard(nome) {
+      const alvo = normalizarCabecalho(nome);
+
+      for (let i = 0; i < Math.min(headerIndexAtual + 1, dadosAtuais.length); i++) {
+        const linha = dadosAtuais[i] || [];
+        for (let j = 0; j < linha.length; j++) {
+          if (normalizarCabecalho(linha[j]) === alvo) {
+            return String(linha[j + 1] || '').trim();
+          }
+        }
+      }
+
+      if (alvo === 'OBRA' && dadosAtuais[0] && dadosAtuais[0][1]) {
+        return String(dadosAtuais[0][1] || '').trim();
+      }
+
+      return '';
+    }
+
+    function obterSituacaoDashboard(realizado, previsto) {
+      const diferenca = Number(realizado || 0) - Number(previsto || 0);
+      if (diferenca < -1) return 'ATRASADA';
+      if (diferenca > 1) return 'ADIANTADA';
+      return 'EM DIA';
+    }
+
+
+    function obterClasseLargura(coluna, index) {
+      const nome = normalizarCabecalho(coluna || '');
+      if (nome === 'ATIVIDADE') return 'largura-atividade';
+      if (nome === 'LOCAL') return 'largura-local';
+      if (nome === 'SETOR' || nome === 'OBRA' || nome === 'EMPRESA' || index === 0) return 'largura-setor';
+      return 'largura-editavel';
+    }
+
+    function normalizarCabecalho(valor) {
+      return String(valor || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    }
+
+    function escapeHtml(valor) {
+      return String(valor).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function escapeAtributo(valor) {
+      return String(valor).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

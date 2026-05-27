@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Módulo Relatórios</title>
+
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-sidebar: #020617;
+      --bg-card: #ffffff;
+      --bg-card-soft: #f8fafc;
+      --orange: #f97316;
+      --orange-dark: #ea580c;
+      --text-dark: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #f8fafc;
+      --border-soft: #e2e8f0;
+      --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.18);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --transition: 0.25s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #020617 0%, #0f172a 45%, #1e293b 100%);
+      color: var(--text-dark);
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 270px;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text-light);
+      padding: 28px 22px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .logo-area {
+      margin-bottom: 34px;
+    }
+
+    .logo-title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--orange);
+      line-height: 1.1;
+    }
+
+    .logo-subtitle {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+    }
+
+    .menu-label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .sidebar-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar-btn {
+      width: 100%;
+      border: none;
+      background: rgba(255,255,255,0.04);
+      color: #cbd5e1;
+      padding: 13px 14px;
+      border-radius: 14px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-btn:hover,
+    .sidebar-btn.active {
+      background: var(--orange);
+      color: white;
+      transform: translateX(3px);
+    }
+
+    .sidebar-footer {
+      margin-top: 36px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(249, 115, 22, 0.12);
+      border: 1px solid rgba(249, 115, 22, 0.25);
+      color: #fed7aa;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .main {
+      flex: 1;
+      padding: 34px 42px;
+      overflow-y: auto;
+    }
+
+    .topbar {
+      background: rgba(255,255,255,0.96);
+      border-radius: var(--radius-xl);
+      padding: 26px 30px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .topbar h1 {
+      font-size: 30px;
+      color: var(--text-dark);
+      font-weight: 850;
+      margin-bottom: 6px;
+    }
+
+    .topbar p {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--orange);
+      color: white;
+      box-shadow: 0 10px 24px rgba(249, 115, 22, 0.32);
+    }
+
+    .btn-primary:hover {
+      background: var(--orange-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e1;
+      transform: translateY(-2px);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .summary-card {
+      background: rgba(255,255,255,0.96);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: 0 14px 35px rgba(15, 23, 42, 0.13);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .summary-card span {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+      font-weight: 800;
+    }
+
+    .summary-card strong {
+      font-size: 28px;
+      color: var(--text-dark);
+    }
+
+    .section-header {
+      margin: 10px 0 18px;
+      color: white;
+    }
+
+    .section-header h2 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .section-header p {
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .module-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      padding: 22px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-soft);
+      cursor: pointer;
+      transition: var(--transition);
+      min-height: 205px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .module-card::before {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      right: -42px;
+      top: -42px;
+      background: rgba(249, 115, 22, 0.13);
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+
+    .module-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 55px rgba(15, 23, 42, 0.22);
+      border-color: rgba(249, 115, 22, 0.45);
+    }
+
+    .module-card:hover::before {
+      transform: scale(1.25);
+      background: rgba(249, 115, 22, 0.20);
+    }
+
+    .module-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--orange), #fb923c);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 12px 25px rgba(249, 115, 22, 0.28);
+    }
+
+    .module-title {
+      font-size: 18px;
+      font-weight: 850;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .module-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    .module-footer {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+
+    .module-status {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa;
+    }
+
+    .module-arrow {
+      font-size: 20px;
+      color: var(--orange);
+      font-weight: 900;
+    }
+
+    .info-box {
+      margin-top: 26px;
+      background: rgba(255,255,255,0.96);
+      border-radius: var(--radius-xl);
+      padding: 22px 24px;
+      border-left: 6px solid var(--orange);
+      box-shadow: var(--shadow-card);
+    }
+
+    .info-box h3 {
+      font-size: 17px;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .info-box p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1280px) {
+      .modules-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+      }
+
+      .main {
+        padding: 22px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .modules-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .modules-grid,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo-area">
+        <div class="logo-title">RELATÓRIOS</div>
+        <div class="logo-subtitle">Sistema de Gestão</div>
+      </div>
+
+      <div class="menu-label">Menu Principal</div>
+
+      <nav class="sidebar-menu">
+        <button class="sidebar-btn active" onclick="voltarInicio()">📄 Central de Relatórios</button>
+        <button class="sidebar-btn" onclick="voltarMenuPrincipal()">← Menu Principal</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        Central para acessar os documentos e relatórios do sistema de gestão.
+      </div>
+    </aside>
+
+    <main class="main">
+<section class="section-header">
+        <h2>Documentos disponíveis</h2>
+        <p>Os botões abaixo já estão preparados para abrir as páginas futuras de cada submódulo.</p>
+      </section>
+
+      <section class="modules-grid">
+        <article class="module-card" onclick="abrirModulo('rdo/rdo.html')">
+          <div>
+            <div class="module-icon">📝</div>
+            <div class="module-title">RDO</div>
+            <div class="module-desc">
+              Relatório Diário de Obra com atividades executadas, efetivo, clima,
+              ocorrências, segurança e fotos.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('pedido-materiais/pedido-materiais.html')">
+          <div>
+            <div class="module-icon">📦</div>
+            <div class="module-title">Pedido de Materiais</div>
+            <div class="module-desc">
+              Solicitação de materiais, ferramentas, equipamentos, EPI, andaimes e insumos da obra.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('checklist-entrega/checklist-entrega.html')">
+          <div>
+            <div class="module-icon">✅</div>
+            <div class="module-title">Checklist de Entrega</div>
+            <div class="module-desc">
+              Conferência final de ambientes, serviços executados, pendências e não conformidades.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('documento-timbrado/documento-timbrado.html')">
+          <div>
+            <div class="module-icon">📄</div>
+            <div class="module-title">Documento Timbrado</div>
+            <div class="module-desc">
+              Criação de documentos timbrados para DDS, treinamentos, reuniões, integrações, liberações, controle de efetivo e pedidos de materiais.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('relatorio-fotografico/relatorio-fotografico.html')">
+          <div>
+            <div class="module-icon">📷</div>
+            <div class="module-title">Relatório Fotográfico</div>
+            <div class="module-desc">
+              Registro fotográfico da obra com legenda, data, local e descrição de cada imagem.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('lista-entrada-empresas/lista-entrada-empresas.html')">
+          <div>
+            <div class="module-icon">📥</div>
+            <div class="module-title">Lista de Entrada para Empresas</div>
+            <div class="module-desc">
+              Controle de entrada de empresas, data de acesso, responsável, finalidade e observações.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('medicao/medicao.html')">
+          <div>
+            <div class="module-icon">📐</div>
+            <div class="module-title">Medição</div>
+            <div class="module-desc">
+              Controle de serviços medidos, quantidades executadas, acumulado, valor unitário e valor total.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('ocorrencias/ocorrencias.html')">
+          <div>
+            <div class="module-icon">⚠️</div>
+            <div class="module-title">Diário de Ocorrências</div>
+            <div class="module-desc">
+              Registro de atrasos, interferências, paralisações, falta de material, retrabalho e ocorrências gerais.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('solicitacao-servico/solicitacao-servico.html')">
+          <div>
+            <div class="module-icon">🛠️</div>
+            <div class="module-title">Solicitação de Serviço</div>
+            <div class="module-desc">
+              Solicitação formal de execução de serviço, prazo, prioridade, justificativa e responsável.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('termo-entrega/termo-entrega.html')">
+          <div>
+            <div class="module-icon">📑</div>
+            <div class="module-title">Termo de Entrega</div>
+            <div class="module-desc">
+              Termo de entrega e recebimento de materiais, ferramentas, áreas liberadas ou serviços finalizados.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('seguranca-sst/seguranca-sst.html')">
+          <div>
+            <div class="module-icon">🦺</div>
+            <div class="module-title">Segurança / SST</div>
+            <div class="module-desc">
+              Inspeções, liberações, DDS, riscos identificados, medidas de controle, EPI e EPC.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+
+        <article class="module-card" onclick="abrirModulo('documentos-personalizados/documentos-personalizados.html')">
+          <div>
+            <div class="module-icon">🗂️</div>
+            <div class="module-title">Documentos Personalizados</div>
+            <div class="module-desc">
+              Área para criar notificações, termos, planos de ação, memoriais de cálculo e relatórios técnicos.
+            </div>
+          </div>
+          <div class="module-footer">
+            <span class="module-status">Acessar</span>
+            <span class="module-arrow">→</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="info-box">
+        <h3>Observação da estrutura</h3>
+        <p>
+          Esta página é o menu principal do módulo Relatórios. Os cards já possuem links internos
+          preparados. Quando criarmos cada submódulo, basta salvar a página dentro da respectiva pasta
+          com o nome configurado no botão.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function abrirModulo(caminho) {
+      window.location.href = caminho;
+    }
+
+    function voltarInicio() {
+      window.location.href = "relatorios.html";
+    }
+
+    function voltarMenuPrincipal() {
+      /*
+        Estrutura considerada:
+
+        sistema-gestao/
+        ├── configuracao.html
+        ├── index.html
+        └── modulos/
+            └── relatorios/
+                └── relatorios.html
+
+        Saindo de:
+        modulos/relatorios/relatorios.html
+
+        Voltando para:
+        index.html
+
+        Caminho correto:
+      */
+      window.location.href = "../../index.html";
+    }
+
+    function voltarDashboard() {
+      window.location.href = "../dashboard/dashboard.html";
+    }
+
+    function alertaEstrutura() {
+      alert(
+        "Estrutura sugerida:\\n\\n" +
+        "modulos/relatorios/relatorios.html\\n" +
+        "modulos/relatorios/rdo/rdo.html\\n" +
+        "modulos/relatorios/pedido-materiais/pedido-materiais.html\\n" +
+        "modulos/relatorios/checklist-entrega/checklist-entrega.html\\n" +
+        "modulos/relatorios/lista-presenca/lista-presenca.html\\n" +
+        "modulos/relatorios/relatorio-fotografico/relatorio-fotografico.html"
+      );
+    }
+  </script>
+</body>
+</html>

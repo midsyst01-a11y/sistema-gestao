@@ -1,0 +1,3062 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard da Obra</title>
+
+  <style>
+    :root {
+      --bg-main: #03070b;
+      --bg-side: #05080d;
+      --bg-card: #0b1118;
+      --bg-card-soft: #0f1620;
+      --border: #26303b;
+      --orange: #ff6a00;
+      --orange-light: #ff8c1a;
+      --text: #f5f5f5;
+      --muted: #b9c0ca;
+      --danger: #ff4545;
+      --success: #35d07f;
+      --warning: #ffbd45;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg-main);
+      color: var(--text);
+    }
+
+    body {
+      overflow: auto;
+      background:
+        radial-gradient(circle at 85% 4%, rgba(255, 106, 0, 0.14), transparent 26%),
+        radial-gradient(circle at 10% 0%, rgba(255, 106, 0, 0.08), transparent 22%),
+        var(--bg-main);
+    }
+
+    .app {
+      width: 100vw;
+      min-height: 100vh;
+      height: auto;
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .sidebar {
+      height: 100vh;
+      border-right: 1px solid var(--border);
+      background: linear-gradient(180deg, #05080d 0%, #020408 100%);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    .side-top h2 {
+      color: var(--orange);
+      font-size: 20px;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .side-top p,
+    .side-bottom p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .side-menu {
+      margin-top: 24px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .side-btn {
+      width: 100%;
+      border: 1px solid rgba(255, 106, 0, 0.75);
+      background: rgba(255, 106, 0, 0.08);
+      color: var(--text);
+      border-radius: 9px;
+      padding: 11px 12px;
+      font-weight: 800;
+      text-align: left;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-size: 12px;
+    }
+
+    .side-btn:hover,
+    .side-btn.active {
+      background: linear-gradient(90deg, #ff6a00, #a94100);
+      box-shadow: 0 0 22px rgba(255, 106, 0, 0.16);
+    }
+
+    .version {
+      display: inline-block;
+      color: var(--orange);
+      border: 1px solid var(--orange);
+      padding: 5px 9px;
+      border-radius: 7px;
+      margin-bottom: 11px;
+      font-weight: 900;
+      font-size: 11px;
+    }
+
+    .rodape-config {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .rodape-config p:first-child {
+      color: var(--orange-light);
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    main {
+      min-height: 100vh;
+      height: auto;
+      min-width: 0;
+      padding: clamp(12px, 1.35vw, 20px);
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      gap: clamp(10px, 1vw, 14px);
+      overflow: visible;
+    }
+
+    .topbar {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .title small {
+      color: var(--orange-light);
+      font-weight: 900;
+      letter-spacing: 1.3px;
+      font-size: clamp(11px, 0.85vw, 13px);
+    }
+
+    .title h1 {
+      margin-top: 5px;
+      font-size: clamp(32px, 3.8vw, 54px);
+      line-height: 0.92;
+      font-weight: 950;
+      letter-spacing: -1.7px;
+      text-transform: uppercase;
+    }
+
+    .title h1 span {
+      color: var(--orange);
+      display: block;
+    }
+
+    .title .bar {
+      width: 62px;
+      height: 4px;
+      background: var(--orange);
+      margin: 12px 0 9px;
+      border-radius: 999px;
+    }
+
+    .title p {
+      color: var(--muted);
+      max-width: 700px;
+      font-size: clamp(12px, 0.95vw, 14px);
+      line-height: 1.35;
+    }
+
+    .top-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(94px, 1fr));
+      gap: 8px;
+      min-width: 310px;
+    }
+
+    .pill {
+      background: rgba(15, 22, 32, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 900;
+      text-align: center;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .pill small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-bottom: 3px;
+      font-weight: 700;
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .card,
+    .panel {
+      background: linear-gradient(180deg, rgba(15, 22, 32, 0.98), rgba(8, 13, 20, 0.98));
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card {
+      border-radius: 12px;
+      padding: 10px 14px;
+      min-height: 68px;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--orange);
+      opacity: 0.9;
+    }
+
+    .card h3 {
+      color: var(--muted);
+      font-size: clamp(9px, 0.72vw, 11px);
+      font-weight: 800;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .card strong {
+      font-size: clamp(22px, 1.7vw, 28px);
+      display: block;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .card span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .card-situacao.em-dia::before { background: var(--success); }
+    .card-situacao.atrasada::before { background: var(--danger); }
+    .card-situacao.adiantada::before { background: #3b82f6; }
+
+    .card-situacao strong {
+      font-size: clamp(18px, 1.45vw, 24px);
+      white-space: nowrap;
+    }
+
+    .obra-curva {
+      display: inline-block;
+      margin-left: 8px;
+      color: var(--orange-light);
+      font-size: 12px;
+      font-weight: 900;
+      vertical-align: 2px;
+      max-width: 420px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .main-grid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.75fr);
+      grid-template-rows: auto auto;
+      gap: 12px;
+    }
+
+    .panel {
+      border-radius: 14px;
+      padding: 15px;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 11px;
+      flex: 0 0 auto;
+    }
+
+    .panel-head h2 {
+      font-size: clamp(15px, 1.25vw, 18px);
+      line-height: 1.1;
+    }
+
+    .panel-head p {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    .btn-orange {
+      border: 1px solid var(--orange);
+      background: rgba(255, 106, 0, 0.08);
+      color: var(--orange-light);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s ease;
+      white-space: nowrap;
+      font-size: 11px;
+    }
+
+    .btn-orange:hover {
+      background: var(--orange);
+      color: #fff;
+    }
+
+    .online-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      background: rgba(11, 17, 24, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 10px 12px;
+      min-height: 56px;
+      overflow: hidden;
+    }
+
+    .online-panel-compacto {
+      justify-content: end;
+    }
+
+    .online-title {
+      display: none;
+    }
+
+    .online-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      min-width: 0;
+    }
+
+    .label-select-aba {
+      color: var(--orange-light);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .label-select-aba span {
+      color: #ffffff;
+      margin-left: 4px;
+    }
+
+    .online-controls select {
+      width: 320px;
+      min-height: 38px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #111827;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35), 0 8px 18px rgba(0,0,0,0.16);
+      cursor: pointer;
+    }
+
+    .online-controls select:focus {
+      outline: none;
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.18);
+    }
+
+    .online-status {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+      text-align: right;
+      min-width: 165px;
+    }
+
+    .online-status.ok { color: var(--success); }
+    .online-status.erro { color: var(--danger); }
+
+    .panel-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    #relatorioPDF {
+      display: none;
+    }
+
+    .relatorio-pdf {
+      background: #ffffff;
+      color: #111827;
+      padding: 10mm 12mm 10mm;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .relatorio-pdf h1 {
+      font-size: 22px;
+      margin: 0 0 4px;
+      color: #111827;
+      text-transform: uppercase;
+    }
+
+    .relatorio-pdf h2 {
+      font-size: 15px;
+      margin: 10px 0 7px;
+      color: #f97316;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 5px;
+    }
+
+    .relatorio-pdf .subtitulo-pdf {
+      font-size: 12px;
+      color: #4b5563;
+      margin-bottom: 8px;
+    }
+
+    .relatorio-grid-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin: 8px 0;
+    }
+
+    .relatorio-card {
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #f97316;
+      border-radius: 8px;
+      padding: 7px 9px;
+      background: #f9fafb;
+    }
+
+    .relatorio-card small {
+      display: block;
+      color: #6b7280;
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .relatorio-card strong {
+      display: block;
+      color: #111827;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .relatorio-graficos {
+      display: grid;
+      grid-template-columns: 1.35fr 0.65fr;
+      gap: 12px;
+      align-items: stretch;
+      margin-top: 8px;
+    }
+
+    .relatorio-grafico-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 8px;
+      background: #ffffff;
+      min-height: 300px;
+      overflow: hidden;
+    }
+
+    .relatorio-curva-box svg {
+      width: 100% !important;
+      height: 280px !important;
+      display: block !important;
+    }
+
+    .relatorio-pizza-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .relatorio-pizza-box h3 {
+      align-self: flex-start;
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #111827;
+    }
+
+    .relatorio-pizza-svg {
+      width: 210px !important;
+      height: 230px !important;
+      max-width: 100% !important;
+      display: block !important;
+      margin: 0 auto !important;
+      overflow: visible !important;
+      aspect-ratio: auto !important;
+    }
+
+    .relatorio-pdf table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      margin-top: 8px;
+    }
+
+    .relatorio-pdf th {
+      background: #12335b;
+      color: #ffffff;
+      padding: 7px 6px;
+      text-align: left;
+      text-transform: uppercase;
+      font-size: 9px;
+    }
+
+    .relatorio-pdf td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 6px;
+      color: #111827;
+      vertical-align: top;
+    }
+
+    .relatorio-assinaturas {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-top: 28px;
+      font-size: 11px;
+      color: #374151;
+    }
+
+    .linha-assinatura {
+      border-top: 1px solid #111827;
+      padding-top: 6px;
+      text-align: center;
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 8mm;
+      }
+
+      body {
+        overflow: visible !important;
+        background: #ffffff !important;
+      }
+
+      body.imprimindo-pdf .app {
+        display: none !important;
+      }
+
+      body.imprimindo-pdf #relatorioPDF {
+        display: block !important;
+      }
+
+      .relatorio-pdf {
+        padding: 0;
+      }
+    }
+
+    .chart-card {
+      grid-row: auto;
+    }
+
+    .chart-box {
+      flex: 0 0 auto;
+      height: 265px;
+      min-height: 265px;
+      border: 1px solid rgba(255, 106, 0, 0.22);
+      border-radius: 12px;
+      background:
+        linear-gradient(rgba(255, 106, 0, 0.075) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 106, 0, 0.075) 1px, transparent 1px),
+        rgba(2, 6, 11, 0.35);
+      background-size: 100% 25%, 12.5% 100%, auto;
+      position: relative;
+      overflow: hidden;
+      padding: 8px;
+    }
+
+    .chart-box svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .curva-s-box {
+      background: #ffffff;
+      padding: 0;
+    }
+
+    .chart-title-light {
+      fill: #111827;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .chart-legend-light {
+      fill: #374151;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .axis-label {
+      fill: #374151;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .axis-date-label {
+      fill: #4b5563;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .chart-value-label {
+      fill: #1f2937;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .chart-value-box {
+      fill: #fff7ed;
+      stroke: #fed7aa;
+      stroke-width: 1;
+      rx: 5;
+    }
+
+    .today-label-box {
+      fill: #111827;
+      stroke: #ff6a00;
+      stroke-width: 1;
+      rx: 6;
+    }
+
+    .today-label-text {
+      fill: #ffffff;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .legend {
+      flex: 0 0 auto;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 9px;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: -1px;
+    }
+
+    .orange-dot { background: var(--orange); }
+    .white-dot { background: #fff; }
+    .blue-dot { background: #2563eb; }
+    .today-dot { background: #111827; border: 1px dashed #ff6a00; }
+    .green-dot { background: var(--success); }
+    .red-dot { background: var(--danger); }
+    .gray-dot { background: #cbd5e1; }
+    .yellow-dot { background: var(--warning); }
+
+    .pizza-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+    }
+
+    .pizza {
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      background: conic-gradient(var(--success) 0 48%, var(--warning) 48% 78%, var(--danger) 78% 100%);
+      border: 9px solid #111923;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 0 24px rgba(255,106,0,0.11);
+    }
+
+    .status-list {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      width: 100%;
+      max-width: 260px;
+    }
+
+    .status-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      gap: 12px;
+    }
+
+    .status-item span {
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .status-item strong {
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .table-panel {
+      grid-column: 1 / -1;
+      min-height: 520px;
+    }
+
+    .table-scroll {
+      flex: 1 1 auto;
+      min-height: 430px;
+      max-height: none;
+      overflow-x: hidden;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      min-width: 0;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 9px 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      color: var(--orange-light);
+      background: #101823;
+      font-size: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    td {
+      color: var(--muted);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .tag.ok { color: var(--success); background: rgba(53, 208, 127, 0.12); }
+    .tag.andamento { color: var(--warning); background: rgba(255, 189, 69, 0.12); }
+    .tag.atraso { color: var(--danger); background: rgba(255, 69, 69, 0.12); }
+
+    @media (min-width: 901px) and (max-height: 760px) {
+      .sidebar { padding: 15px 14px; }
+      main { padding: 10px 14px; gap: 8px; }
+      .title h1 { font-size: clamp(28px, 3.2vw, 42px); }
+      .title .bar { margin: 8px 0 7px; }
+      .title p { display: none; }
+      .card { min-height: 70px; padding: 11px 14px; }
+      .card strong { font-size: 24px; }
+      .panel { padding: 12px; }
+      .panel-head { margin-bottom: 8px; }
+      .pizza { width: 104px; height: 104px; }
+      .pizza-wrap { grid-template-columns: 104px 1fr; }
+      th, td { padding: 7px 9px; }
+    }
+
+    @media (max-width: 1100px) {
+      .online-panel { grid-template-columns: 1fr; align-items: stretch; }
+      .online-controls { display: grid; grid-template-columns: auto 1fr auto; }
+      .online-controls select { width: 100%; }
+      .online-status { text-align: left; }
+
+      body { overflow: auto; }
+
+      .app {
+        height: auto;
+        min-height: 100vh;
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      main {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+        grid-template-rows: auto auto auto;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        min-width: 0;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .grid-cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+      }
+
+      .chart-card {
+        grid-row: auto;
+      }
+
+      .chart-box {
+        height: min(380px, 44vh);
+        min-height: 260px;
+      }
+
+      .table-scroll {
+        max-height: 320px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .online-controls { grid-template-columns: 1fr; }
+
+      main {
+        padding: 12px;
+        gap: 10px;
+      }
+
+      .title h1 {
+        font-size: 34px;
+      }
+
+      .title p {
+        font-size: 12px;
+      }
+
+      .top-actions,
+      .grid-cards,
+      .pizza-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        min-height: 76px;
+      }
+
+      .panel {
+        padding: 12px;
+      }
+
+      .panel-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .panel-actions,
+      .btn-orange {
+        width: 100%;
+      }
+
+      .chart-box {
+        height: 300px;
+        min-height: 300px;
+      }
+
+      .pizza {
+        width: 132px;
+        height: 132px;
+        margin: 0 auto;
+      }
+    }
+  
+    /* ===== CORREÇÃO FINAL DO DONUT DO RELATÓRIO ===== */
+    .relatorio-pizza-box {
+      overflow: visible !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+    }
+
+    .relatorio-pizza-box h3 {
+      width: 100% !important;
+      margin: 0 0 4px !important;
+      font-size: 15px !important;
+      color: #111827 !important;
+    }
+
+    .relatorio-pizza-svg {
+      width: 210px !important;
+      height: 230px !important;
+      max-width: 100% !important;
+      display: block !important;
+      margin: 0 auto !important;
+      overflow: visible !important;
+      aspect-ratio: auto !important;
+    }
+  
+    /* ===== CORREÇÃO DE QUEBRA DE PÁGINA NO PDF ===== */
+    .relatorio-pdf table,
+    .tabela-atividades-pdf {
+      page-break-inside: auto !important;
+      break-inside: auto !important;
+      border-collapse: collapse !important;
+    }
+
+    .relatorio-pdf thead {
+      display: table-header-group !important;
+    }
+
+    .relatorio-pdf tfoot {
+      display: table-footer-group !important;
+    }
+
+    .relatorio-pdf tr,
+    .tabela-atividades-pdf tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      page-break-after: auto !important;
+    }
+
+    .relatorio-pdf td,
+    .relatorio-pdf th {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    .tabela-atividades-pdf td {
+      line-height: 1.28 !important;
+      padding-top: 6px !important;
+      padding-bottom: 6px !important;
+      vertical-align: middle !important;
+    }
+  
+    /* ===== AJUSTE FINAL DE PAGINAÇÃO DO RELATÓRIO PDF ===== */
+    .titulo-atividades-pdf {
+      page-break-before: auto !important;
+      break-before: auto !important;
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+      margin-top: 0 !important;
+      padding-top: 2mm !important;
+    }
+
+    .tabela-atividades-pdf {
+      page-break-before: avoid !important;
+      break-before: avoid !important;
+      page-break-inside: auto !important;
+      break-inside: auto !important;
+    }
+
+    .tabela-atividades-pdf thead {
+      display: table-header-group !important;
+    }
+
+    .tabela-atividades-pdf tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    .tabela-resumo-tipos-pdf {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      margin-bottom: 10px !important;
+    }
+
+    .tabela-resumo-tipos-pdf td:nth-child(2),
+    .tabela-resumo-tipos-pdf td:nth-child(3),
+    .tabela-resumo-tipos-pdf td:nth-child(4) {
+      text-align: center !important;
+    }
+
+    /* ===== INTEGRIDADE DE CONTEÚDO NO PDF: NÃO CORTAR TEXTO ENTRE PÁGINAS ===== */
+    .pdf-header,
+    .relatorio-grid-cards,
+    .relatorio-graficos,
+    .relatorio-card,
+    .tabela-resumo-tipos-pdf,
+    .titulo-atividades-pdf {
+      page-break-inside: avoid !important;
+      break-inside: avoid-page !important;
+    }
+
+    .titulo-atividades-pdf {
+      page-break-after: avoid !important;
+      break-after: avoid-page !important;
+    }
+
+    .tabela-atividades-pdf thead {
+      display: table-header-group !important;
+    }
+
+    .tabela-atividades-pdf tbody tr,
+    .tabela-resumo-tipos-pdf tbody tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid-page !important;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="side-top">
+        <h2>DASHBOARD</h2>
+        <p>Painel de acompanhamento visual da obra conectado ao módulo de cronograma.</p>
+
+        <div class="side-menu">
+          <button class="side-btn active" onclick="atualizarDashboard()">Dashboard da Obra</button>
+          <button class="side-btn" onclick="abrirCronograma()">Abrir Cronograma</button>
+          <button class="side-btn" onclick="voltarMenu()">Menu Principal</button>
+        </div>
+      </div>
+
+      <div class="side-bottom">
+        <div class="rodape-config" id="rodapeConfigDashboard">
+          <p id="rodapeLinha1">Sistema de Gestão de Obras</p>
+          <p id="rodapeLinha2">Dashboard operacional</p>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <section class="topbar">
+        <div class="title">
+          <small>PAINEL DE INDICADORES</small>
+          <h1>DASHBOARD <span>DA OBRA</span></h1>
+          <div class="bar"></div>
+          <p>Resumo executivo para acompanhamento do avanço físico, status das atividades, Curva S e indicadores principais do cronograma.</p>
+        </div>
+
+        <div class="top-actions">
+          <div class="pill"><small>DATA</small><span id="dataHoje">--/--/----</span></div>
+          <div class="pill"><small>HORA</small><span id="horaAgora">--:--</span></div>
+          <div class="pill"><small>BASE</small><span id="baseDados">DEMO</span></div>
+        </div>
+      </section>
+
+      <section class="online-panel online-panel-compacto">
+        <div class="online-controls">
+          <label class="label-select-aba" for="selectAbaDashboard">Selecionar aba <span>→</span></label>
+          <select id="selectAbaDashboard">
+            <option value="">Buscando abas...</option>
+          </select>
+          <button class="btn-orange" id="btnCarregarOnlineDashboard" onclick="carregarDadosOnlineDashboard()">Carregar Online</button>
+          <button class="btn-orange" onclick="exportarRelatorioDashboardPDF()">Exportar Relatório</button>
+          <button class="btn-orange" onclick="abrirGantt()">Exibir Gantt</button>
+        </div>
+        <div class="online-status" id="statusOnlineDashboard">Planilha online.</div>
+      </section>
+
+      <section class="grid-cards">
+        <article class="card">
+          <h3>Realizado</h3>
+          <strong id="cardRealizado">0%</strong>
+          <span>Executado acumulado</span>
+        </article>
+
+        <article class="card">
+          <h3>Previsto hoje</h3>
+          <strong id="cardPrevisto">0%</strong>
+          <span>Previsão na data real</span>
+        </article>
+
+        <article class="card">
+          <h3>A concluir</h3>
+          <strong id="cardAConcluir">100%</strong>
+          <span>Saldo restante da obra</span>
+        </article>
+
+        <article class="card">
+          <h3>Atividades</h3>
+          <strong id="cardTotal">0</strong>
+          <span>Total no cronograma</span>
+        </article>
+
+        <article class="card">
+          <h3>Atividades feitas</h3>
+          <strong id="cardConcluidas">0</strong>
+          <span>Concluídas / 100%</span>
+        </article>
+
+        <article class="card card-situacao">
+          <h3>Situação da obra</h3>
+          <strong id="cardSituacao">SEM DADOS</strong>
+          <span id="cardDiferenca">Aguardando cronograma</span>
+        </article>
+      </section>
+
+      <section class="main-grid">
+        <article class="panel chart-card">
+          <div class="panel-head">
+            <div>
+              <h2>Curva S <span id="nomeObraCurva" class="obra-curva">OBRA NÃO IDENTIFICADA</span></h2>
+              <p>Previsto x realizado do cronograma físico.</p>
+            </div>
+            
+          </div>
+
+          <div class="chart-box curva-s-box">
+            <svg id="graficoCurvaS" viewBox="0 0 900 360" preserveAspectRatio="none" aria-label="Curva S planejado x realizado">
+              <rect x="0" y="0" width="900" height="360" fill="rgba(255,255,255,0.96)" rx="12"></rect>
+              <g id="gridCurvaS"></g>
+              <g id="labelsCurvaS"></g>
+              <text x="450" y="26" text-anchor="middle" class="chart-title-light">Planejado x Realizado</text>
+              <line x1="350" y1="44" x2="390" y2="44" stroke="#2563eb" stroke-width="3" />
+              <text x="400" y="48" class="chart-legend-light">Esforço Acum.</text>
+              <line x1="485" y1="44" x2="515" y2="44" stroke="#22c55e" stroke-width="3" />
+              <text x="522" y="48" class="chart-legend-light">Real acima</text>
+              <line x1="610" y1="44" x2="640" y2="44" stroke="#ef4444" stroke-width="3" />
+              <text x="647" y="48" class="chart-legend-light">Real abaixo</text>
+              <path id="linhaPrevista" d="" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+              <path id="linhaRealizado" d="" fill="none" stroke="#22c55e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" />
+              <g id="linhaRealizadoSegmentos"></g>
+              <g id="pontosPrevistos"></g>
+              <g id="pontosRealizados"></g>
+              <g id="linhaHojeGrupo"></g>
+            </svg>
+          </div>
+
+          <div class="legend legend-dashboard">
+            <span><i class="blue-dot"></i> Previsto acumulado</span>
+            <span><i class="green-dot"></i> Realizado acima do previsto</span>
+            <span><i class="red-dot"></i> Realizado abaixo do previsto</span>
+            <span><i class="today-dot"></i> Data real / hoje</span>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Status das Atividades</h2>
+              <p>Distribuição geral do cronograma.</p>
+            </div>
+          </div>
+
+          <div class="pizza-wrap">
+            <div class="pizza" id="pizzaStatus"></div>
+            <div class="status-list">
+              <div class="status-item"><span><i class="green-dot"></i> Concluído</span><strong id="statusConcluido">48%</strong></div>
+              <div class="status-item"><span><i class="yellow-dot"></i> Em andamento</span><strong id="statusAndamento">30%</strong></div>
+              <div class="status-item"><span><i class="gray-dot"></i> A concluir</span><strong id="statusAtrasado">22%</strong></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel table-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Planilha carregada</h2>
+              <p>Visualização completa dos dados importados da aba online.</p>
+            </div>
+            <button class="btn-orange" onclick="abrirCronograma()">Editar</button>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:7%;">Setor</th>
+                  <th style="width:9%;">Local</th>
+                  <th style="width:18%;">Tipo de Serviço</th>
+                  <th style="width:29%;">Atividade</th>
+                  <th style="width:8%;">Dificuldade</th>
+                  <th style="width:7%;">Início</th>
+                  <th style="width:7%;">Fim</th>
+                  <th style="width:8%;">Status</th>
+                  <th style="width:8%;">Realizado</th>
+                  <th style="width:5%;">Peso</th>
+                </tr>
+              </thead>
+              <tbody id="tabelaResumo">
+                <tr>
+                  <td>ADM</td>
+                  <td>Expedição Farelo</td>
+                  <td>Demolição de parede existente</td>
+                  <td>75%</td>
+                  <td><span class="tag andamento">EM ANDAMENTO</span></td>
+                </tr>
+                <tr>
+                  <td>ADM</td>
+                  <td>Banheiro Masculino</td>
+                  <td>Acabamento do piso</td>
+                  <td>100%</td>
+                  <td><span class="tag ok">CONCLUÍDO</span></td>
+                </tr>
+                <tr>
+                  <td>ADM</td>
+                  <td>Banheiro Feminino</td>
+                  <td>Instalação de divisórias</td>
+                  <td>20%</td>
+                  <td><span class="tag atraso">ATRASADO</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div id="relatorioPDF"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    function aplicarRodapeConfiguracoes() {
+      const possiveisChaves = [
+        'configuracoesSistema',
+        'configSistema',
+        'dadosConfiguracao',
+        'configuracoes',
+        'empresaConfiguracao'
+      ];
+
+      let config = {};
+      for (const chave of possiveisChaves) {
+        try {
+          const valor = JSON.parse(localStorage.getItem(chave) || '{}');
+          if (valor && Object.keys(valor).length) {
+            config = valor;
+            break;
+          }
+        } catch (erro) {}
+      }
+
+      const linha1 = document.getElementById('rodapeLinha1');
+      const linha2 = document.getElementById('rodapeLinha2');
+      if (!linha1 || !linha2) return;
+
+      const empresa = config.empresa || config.EMPRESA || config.nomeEmpresa || config.NOME_EMPRESA || config.razaoSocial || config.RAZAO_SOCIAL || '';
+      const sistema = config.sistema || config.nomeSistema || config.NOME_SISTEMA || 'Sistema de Gestão de Obras';
+      const telefone = config.telefone || config.TELEFONE || config.whatsapp || config.WHATSAPP || '';
+      const ano = new Date().getFullYear();
+
+      linha1.textContent = empresa || sistema;
+      linha2.textContent = telefone ? `${telefone} • ${ano}` : `© ${ano} • ${sistema}`;
+    }
+
+    function iniciarDashboardLimpo() {
+      localStorage.removeItem('dadosCronograma');
+      localStorage.removeItem('resumoCronogramaDashboard');
+      localStorage.removeItem('dashboardRelatorioGraficos');
+      localStorage.removeItem('graficoCurvaS_dashboard');
+      localStorage.removeItem('graficoPizza_dashboard');
+      localStorage.removeItem('cardsDashboard_relatorio');
+      localStorage.removeItem('statusDashboard_relatorio');
+
+      const campos = {
+        baseDados: 'SEM DADOS',
+        cardRealizado: '0%',
+        cardPrevisto: '0%',
+        cardAConcluir: '100%',
+        cardTotal: '0',
+        cardConcluidas: '0',
+        cardSituacao: 'SEM DADOS',
+        cardDiferenca: 'Carregue uma obra online',
+        nomeObraCurva: 'OBRA NÃO CARREGADA',
+        statusConcluido: '0%',
+        statusAndamento: '0%',
+        statusAtrasado: '0%'
+      };
+
+      Object.keys(campos).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = campos[id];
+      });
+
+      const cardSituacao = document.querySelector('.card-situacao');
+      if (cardSituacao) cardSituacao.className = 'card card-situacao';
+
+      const pizza = document.getElementById('pizzaStatus');
+      if (pizza) pizza.style.background = 'conic-gradient(#e5e7eb 0 100%)';
+
+      const tabela = document.getElementById('tabelaResumo');
+      if (tabela) {
+        tabela.innerHTML = '<tr><td colspan="5">Nenhuma obra carregada. Selecione uma aba e clique em Carregar Online.</td></tr>';
+      }
+
+      ['linhaPrevista', 'linhaRealizado'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute('d', '');
+      });
+
+      ['gridCurvaS', 'labelsCurvaS', 'linhaRealizadoSegmentos', 'pontosPrevistos', 'pontosRealizados', 'linhaHojeGrupo'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+      });
+    }
+
+    function atualizarRelogio() {
+      const agora = new Date();
+      const data = agora.toLocaleDateString('pt-BR');
+      const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+      document.getElementById('dataHoje').textContent = data;
+      document.getElementById('horaAgora').textContent = hora;
+    }
+
+    function abrirCronograma() {
+      if (document.referrer && document.referrer.includes('/cronograma/')) {
+        window.history.back();
+        return;
+      }
+      window.location.href = '../cronograma/cronograma.html';
+    }
+
+
+    function abrirGantt() {
+      window.location.href = 'gantt/gantt.html';
+    }
+
+    async function exportarRelatorioPDF() {
+      const dadosOriginais = JSON.parse(localStorage.getItem('dadosCronograma') || '[]');
+      const dados = Array.isArray(dadosOriginais) ? dadosOriginais : [];
+
+      if (dados.length) montarIndicadores(dados);
+
+      const obra = buscarNomeObra(dados);
+      const dataAtual = new Date().toLocaleDateString('pt-BR');
+      const horaAtual = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const atividades = montarLinhasRelatorioCronograma(dados);
+      const curvaPdf = montarCurvaSvgPDF(dados);
+
+      const pConcluidoPdf = numero(document.getElementById('statusConcluido')?.textContent || '0');
+      const pAndamentoPdf = numero(document.getElementById('statusAndamento')?.textContent || '0');
+      const pAtrasadoPdf = numero(document.getElementById('statusAtrasado')?.textContent || '0');
+      const pizzaSvg = montarPizzaSvgPDF(pConcluidoPdf, pAndamentoPdf, pAtrasadoPdf);
+
+      const linhasTabela = atividades.map(item => `
+        <tr>
+          <td>${limparTexto(item.tipoServico || '-')}</td>
+          <td>${limparTexto(item.atividade || '-')}</td>
+          <td>${limparTexto(item.status || 'PENDENTE')}</td>
+          <td>${limparTexto(item.realizado || '0%')}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="4">Nenhuma atividade encontrada no cronograma.</td></tr>';
+
+      const relatorio = document.getElementById('relatorioPDF');
+      relatorio.innerHTML = `
+        <section class="relatorio-pdf relatorio-pdf-direto">
+          <div class="pdf-header">
+            <div>
+              <h1>Relatório de Avanço Físico</h1>
+              <div class="subtitulo-pdf"><strong>Obra:</strong> ${limparTexto(obra)} &nbsp; | &nbsp; <strong>Emissão:</strong> ${dataAtual} às ${horaAtual}</div>
+            </div>
+            <div class="pdf-selo">DASHBOARD</div>
+          </div>
+
+          <div class="relatorio-grid-cards">
+            <div class="relatorio-card"><small>Realizado</small><strong>${document.getElementById('cardRealizado')?.textContent || '0%'}</strong></div>
+            <div class="relatorio-card"><small>Previsto hoje</small><strong>${document.getElementById('cardPrevisto')?.textContent || '0%'}</strong></div>
+            <div class="relatorio-card"><small>A concluir</small><strong>${document.getElementById('cardAConcluir')?.textContent || '100%'}</strong></div>
+            <div class="relatorio-card"><small>Atividades</small><strong>${document.getElementById('cardTotal')?.textContent || '0'}</strong></div>
+            <div class="relatorio-card"><small>Atividades feitas</small><strong>${document.getElementById('cardConcluidas')?.textContent || '0'}</strong></div>
+            <div class="relatorio-card"><small>Situação</small><strong>${document.getElementById('cardSituacao')?.textContent || 'SEM DADOS'}</strong></div>
+          </div>
+
+          <h2>Indicadores Gráficos</h2>
+          <div class="relatorio-graficos">
+            <div class="relatorio-grafico-box relatorio-curva-box">${curvaPdf}</div>
+            <div class="relatorio-grafico-box relatorio-pizza-box">
+              <h3>Realizado x A Concluir</h3>
+              ${pizzaSvg}
+              
+            </div>
+          </div>
+
+          <h2 class="titulo-atividades-pdf">Atividades do Cronograma</h2>
+          <table class="tabela-atividades-pdf">
+            <thead>
+              <tr>
+                <th style="width:24%;">Tipo de Serviço</th>
+                <th>Atividade</th>
+                <th style="width:16%;">Status</th>
+                <th style="width:13%;">Realizado</th>
+              </tr>
+            </thead>
+            <tbody>${linhasTabela}</tbody>
+          </table>
+        </section>
+      `;
+
+      if (!window.html2pdf) {
+        alert('Biblioteca de PDF não carregou. Verifique a internet ou use a opção imprimir do navegador.');
+        return;
+      }
+
+      const nomeArquivo = `relatorio-avanco-${limparNomeArquivo(obra)}.pdf`;
+      const opcoes = {
+        margin: [4, 5, 5, 5],
+        filename: nomeArquivo,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: ['css', 'legacy'], avoid: ['.pdf-header', '.relatorio-grid-cards', '.relatorio-graficos', '.relatorio-card', '.tabela-resumo-tipos-pdf', '.titulo-atividades-pdf', '.tabela-atividades-pdf tr'] }
+      };
+
+      await html2pdf().set(opcoes).from(relatorio.firstElementChild).save();
+    }
+
+    function montarLinhasRelatorioCronograma(dados) {
+      const lista = Array.isArray(dados) ? dados : [];
+      let ultimoTipoServico = '';
+
+      return lista.map((item, indice) => {
+        const tipoServicoLido = pegarTipoServicoPorColuna(item, indice);
+        if (tipoServicoLido) ultimoTipoServico = tipoServicoLido;
+
+        return {
+          tipoServico: tipoServicoLido || ultimoTipoServico || '-',
+          atividade: pegarAtividadePorColuna(item),
+          status: pegarStatusPorColuna(item),
+          realizado: pegarRealizadoPorColuna(item)
+        };
+      }).filter(item => item.atividade && item.atividade !== '-');
+    }
+
+    function pegarValorPorPosicao(item, indice) {
+      if (Array.isArray(item)) return item[indice] || '';
+      if (!item || typeof item !== 'object') return '';
+      const chaves = Object.keys(item);
+      const chave = chaves[indice];
+      return chave ? item[chave] : '';
+    }
+
+    function pegarTipoServicoPorColuna(item, indice) {
+      if (Array.isArray(item)) return item[2] || '';
+
+      const valor = pegarCampo(item, [
+        'TIPO DE SERVIÇO', 'TIPO DE SERVICO', 'TIPO SERVIÇO', 'TIPO SERVICO',
+        'TIPO_SERVIÇO', 'TIPO_SERVICO', 'TIPO', 'SERVIÇO', 'SERVICO'
+      ]);
+      if (valor) return valor;
+
+      const valorTerceiraColuna = pegarValorPorPosicao(item, 2);
+      if (valorTerceiraColuna && pareceTipoServico(valorTerceiraColuna)) return valorTerceiraColuna;
+
+      return '';
+    }
+
+    function pareceTipoServico(valor) {
+      const texto = normalizar(valor);
+      const comecaComNumero = texto.length > 1 && texto[0] >= '0' && texto[0] <= '9' && texto.includes('-');
+      return comecaComNumero || texto.includes('SERVICO') || texto.includes('DEMOL') || texto.includes('RETIRADA') || texto.includes('PRELIMINAR') || texto.includes('INSTALACAO') || texto.includes('ACABAMENTO');
+    }
+
+    function pegarAtividadePorColuna(item) {
+      if (Array.isArray(item)) return item[3] || '';
+      return pegarCampo(item, ['ATIVIDADE', 'DESCRIÇÃO', 'DESCRICAO']) || pegarValorPorPosicao(item, 3) || '';
+    }
+
+    function pegarStatusPorColuna(item) {
+      if (Array.isArray(item)) return item[6] || '';
+      return pegarCampo(item, ['STATUS', 'SITUAÇÃO', 'SITUACAO']) || pegarValorPorPosicao(item, 6) || '';
+    }
+
+    function pegarRealizadoPorColuna(item) {
+      if (Array.isArray(item)) return item[7] || '';
+      return pegarCampo(item, ['REALIZADO', 'REALIZADO %', '% REALIZADO']) || pegarValorPorPosicao(item, 7) || '';
+    }
+
+    function limparNomeArquivo(valor) {
+      return normalizar(valor || 'obra').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'obra';
+    }
+
+    function limparTexto(valor) {
+      return String(valor ?? '').replace(/[<>&]/g, caractere => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[caractere]));
+    }
+
+    function limparNomeCampo(valor) {
+      return normalizar(valor).split('_').join(' ').split('-').join(' ').split('  ').join(' ').trim();
+    }
+
+    function extrairAtividadesParaPDF(dados) {
+      const linhasDaTela = extrairAtividadesDaTabelaCronograma();
+      if (linhasDaTela.length) return linhasDaTela;
+
+      const lista = Array.isArray(dados) ? dados : [];
+      return lista.map(item => ({
+        tipoServico: pegarTipoServico(item),
+        atividade: pegarCampo(item, ['ATIVIDADE', 'DESCRIÇÃO', 'DESCRICAO']),
+        status: pegarCampo(item, ['STATUS', 'SITUAÇÃO', 'SITUACAO']),
+        realizado: pegarCampo(item, ['REALIZADO', 'REALIZADO %', '% REALIZADO'])
+      }));
+    }
+
+    function extrairAtividadesDaTabelaCronograma() {
+      const tabelas = Array.from(document.querySelectorAll('.nova-planilha-table, .tabela-wrap table, table'))
+        .filter(tabela => !tabela.closest('#relatorioPDF'));
+
+      for (const tabela of tabelas) {
+        const cabecalhos = Array.from(tabela.querySelectorAll('thead th, thead td, .linha-cabecalho th, .linha-cabecalho td'))
+          .map(celula => limparNomeCampo(celula.textContent));
+
+        if (!cabecalhos.length || !cabecalhos.some(c => c.includes('ATIVIDADE'))) continue;
+
+        const idxTipo = localizarIndiceCabecalho(cabecalhos, ['TIPO DE SERVICO', 'TIPO SERVICO', 'SERVICO']);
+        const idxAtividade = localizarIndiceCabecalho(cabecalhos, ['ATIVIDADE', 'DESCRICAO']);
+        const idxStatus = localizarIndiceCabecalho(cabecalhos, ['STATUS', 'SITUACAO']);
+        const idxRealizado = localizarIndiceCabecalho(cabecalhos, ['REALIZADO']);
+
+        if (idxAtividade < 0) continue;
+
+        let ultimoTipo = '';
+        const linhas = Array.from(tabela.querySelectorAll('tbody tr, tr'))
+          .filter(tr => !tr.classList.contains('linha-meta') && !tr.classList.contains('linha-cabecalho'))
+          .map(tr => {
+            const celulas = Array.from(tr.children);
+            const tipoAtual = lerValorCelula(celulas[idxTipo]);
+            if (tipoAtual) ultimoTipo = tipoAtual;
+            return {
+              tipoServico: tipoAtual || ultimoTipo,
+              atividade: lerValorCelula(celulas[idxAtividade]),
+              status: lerValorCelula(celulas[idxStatus]),
+              realizado: lerValorCelula(celulas[idxRealizado])
+            };
+          })
+          .filter(item => item.atividade);
+
+        if (linhas.length) return linhas;
+      }
+
+      return [];
+    }
+
+    function localizarIndiceCabecalho(cabecalhos, nomes) {
+      return cabecalhos.findIndex(cabecalho => nomes.some(nome => cabecalho === limparNomeCampo(nome) || cabecalho.includes(limparNomeCampo(nome))));
+    }
+
+    function lerValorCelula(celula) {
+      if (!celula) return '';
+      const campo = celula.querySelector('input, select, textarea');
+      const valor = campo ? campo.value : celula.textContent;
+      return String(valor || '').trim();
+    }
+
+    function pegarCampo(item, nomesPossiveis) {
+      if (!item || typeof item !== 'object') return '';
+
+      for (const nome of nomesPossiveis) {
+        if (item[nome] !== undefined && item[nome] !== null && String(item[nome]).trim() !== '') return item[nome];
+      }
+
+      const chaves = Object.keys(item);
+      for (const chave of chaves) {
+        const chaveNormalizada = limparNomeCampo(chave);
+        for (const nome of nomesPossiveis) {
+          if (chaveNormalizada === limparNomeCampo(nome) && String(item[chave]).trim() !== '') return item[chave];
+        }
+      }
+
+      return '';
+    }
+
+    function pegarTipoServico(item) {
+      if (!item || typeof item !== 'object') return '';
+
+      const nomesDiretos = [
+        'TIPO DE SERVIÇO', 'TIPO DE SERVICO', 'TIPO SERVIÇO', 'TIPO SERVICO',
+        'TIPO_SERVIÇO', 'TIPO_SERVICO', 'TIPO', 'SERVIÇO', 'SERVICO'
+      ];
+
+      const direto = pegarCampo(item, nomesDiretos);
+      if (direto) return direto;
+
+      const chaves = Object.keys(item);
+      const chaveTipo = chaves.find(chave => {
+        const n = limparNomeCampo(chave);
+        return n.includes('TIPO') && (n.includes('SERVICO') || n.includes('SERVI'));
+      });
+      if (chaveTipo && String(item[chaveTipo]).trim() !== '') return item[chaveTipo];
+
+      const chaveServico = chaves.find(chave => {
+        const n = limparNomeCampo(chave);
+        return n === 'SERVICO' || n === 'SERVIÇO' || n.includes('SERVICO');
+      });
+      if (chaveServico && String(item[chaveServico]).trim() !== '') return item[chaveServico];
+
+      const setor = pegarCampo(item, ['SETOR']);
+      const local = pegarCampo(item, ['LOCAL']);
+      if (setor && local) return `${setor} - ${local}`;
+      if (setor) return setor;
+      if (local) return local;
+
+      return '';
+    }
+
+    function montarPizzaSvgPDF(realizado, aConcluir, ignorar) {
+      let percentualRealizado = Number(realizado);
+      if (Number.isNaN(percentualRealizado)) {
+        percentualRealizado = numero(document.getElementById('cardRealizado')?.textContent || '0');
+      }
+
+      percentualRealizado = Math.max(0, Math.min(100, percentualRealizado));
+      const percentualAConcluir = Math.max(0, 100 - percentualRealizado);
+
+      const realizadoPath = criarSegmentoDonut(100, 82, 64, 38, 0, percentualRealizado);
+      const concluirPath = criarSegmentoDonut(100, 82, 64, 38, percentualRealizado, 100);
+
+      return `
+        <svg class="relatorio-pizza-svg" width="210" height="230" viewBox="0 0 210 230" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="82" r="68" fill="#f8fafc"></circle>
+          <path d="${concluirPath}" fill="#e5e7eb"></path>
+          <path d="${realizadoPath}" fill="#35d07f"></path>
+          <circle cx="100" cy="82" r="39" fill="#ffffff"></circle>
+
+          <text x="100" y="78" text-anchor="middle" font-size="24" font-weight="900" fill="#111827">${Math.round(percentualRealizado)}%</text>
+          <text x="100" y="99" text-anchor="middle" font-size="10" font-weight="900" fill="#6b7280">REALIZADO</text>
+
+          <g transform="translate(22 168)">
+            <circle cx="6" cy="6" r="5" fill="#35d07f"></circle>
+            <text x="18" y="10" font-size="11" font-weight="900" fill="#111827">REALIZADO</text>
+            <text x="166" y="10" text-anchor="end" font-size="11" font-weight="900" fill="#111827">${Math.round(percentualRealizado)}%</text>
+          </g>
+
+          <g transform="translate(22 194)">
+            <circle cx="6" cy="6" r="5" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1"></circle>
+            <text x="18" y="10" font-size="11" font-weight="900" fill="#111827">A CONCLUIR</text>
+            <text x="166" y="10" text-anchor="end" font-size="11" font-weight="900" fill="#111827">${Math.round(percentualAConcluir)}%</text>
+          </g>
+        </svg>
+      `;
+    }
+
+    function criarSegmentoDonut(cx, cy, rExterno, rInterno, inicioPercentual, fimPercentual) {
+      const inicio = Math.max(0, Math.min(100, inicioPercentual));
+      const fim = Math.max(0, Math.min(100, fimPercentual));
+      if (fim <= inicio) return '';
+      if (fim - inicio >= 99.999) {
+        return `M ${cx} ${cy - rExterno} A ${rExterno} ${rExterno} 0 1 1 ${cx - 0.01} ${cy - rExterno} Z M ${cx} ${cy - rInterno} A ${rInterno} ${rInterno} 0 1 0 ${cx - 0.01} ${cy - rInterno} Z`;
+      }
+
+      const a0 = (inicio / 100) * Math.PI * 2 - Math.PI / 2;
+      const a1 = (fim / 100) * Math.PI * 2 - Math.PI / 2;
+      const grande = fim - inicio > 50 ? 1 : 0;
+
+      const x1 = cx + rExterno * Math.cos(a0);
+      const y1 = cy + rExterno * Math.sin(a0);
+      const x2 = cx + rExterno * Math.cos(a1);
+      const y2 = cy + rExterno * Math.sin(a1);
+      const x3 = cx + rInterno * Math.cos(a1);
+      const y3 = cy + rInterno * Math.sin(a1);
+      const x4 = cx + rInterno * Math.cos(a0);
+      const y4 = cy + rInterno * Math.sin(a0);
+
+      return `M ${x1} ${y1} A ${rExterno} ${rExterno} 0 ${grande} 1 ${x2} ${y2} L ${x3} ${y3} A ${rInterno} ${rInterno} 0 ${grande} 0 ${x4} ${y4} Z`;
+    }
+
+    function criarArcoPizza(cx, cy, r, espessura, inicioPercentual, fimPercentual, cor) {
+      if (fimPercentual <= inicioPercentual) return '';
+      const inicio = (inicioPercentual / 100) * Math.PI * 2 - Math.PI / 2;
+      const fim = (fimPercentual / 100) * Math.PI * 2 - Math.PI / 2;
+      const raioInterno = r - espessura;
+      const x1 = cx + r * Math.cos(inicio);
+      const y1 = cy + r * Math.sin(inicio);
+      const x2 = cx + r * Math.cos(fim);
+      const y2 = cy + r * Math.sin(fim);
+      const x3 = cx + raioInterno * Math.cos(fim);
+      const y3 = cy + raioInterno * Math.sin(fim);
+      const x4 = cx + raioInterno * Math.cos(inicio);
+      const y4 = cy + raioInterno * Math.sin(inicio);
+      const grande = fimPercentual - inicioPercentual > 50 ? 1 : 0;
+      return `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${grande} 1 ${x2} ${y2} L ${x3} ${y3} A ${raioInterno} ${raioInterno} 0 ${grande} 0 ${x4} ${y4} Z" fill="${cor}"></path>`;
+    }
+
+    function montarCurvaSvgPDF(dados) {
+      const resultado = gerarPontosCurvaS(dados, 0);
+      const pontos = resultado.pontos || [];
+      const left = 58;
+      const right = 835;
+      const top = 48;
+      const bottom = 235;
+      const largura = right - left;
+      const altura = bottom - top;
+      const maxY = Math.max(100, Math.ceil(Math.max(...pontos.map(p => p.previsto || 0), resultado.realizadoHoje || 0, 100) / 10) * 10);
+
+      const mapX = data => calcularXData(data, resultado.inicioObra, resultado.fimObra, left, largura);
+      const mapY = valor => bottom - ((Number(valor) || 0) / maxY) * altura;
+
+      const pontosPrev = pontos.map((p) => ({ x: mapX(p.data), y: mapY(p.previsto), valor: p.previsto, data: p.data }));
+      const pontosReal = pontos.map((p) => p.realizado === null ? null : ({ x: mapX(p.data), y: mapY(p.realizado), valor: p.realizado, previsto: p.previsto, data: p.data })).filter(Boolean);
+      const pathPrev = montarPath(pontosPrev);
+      const pathReal = montarPath(pontosReal);
+      const corLinhaRealizadaPDF = (resultado.realizadoHoje || 0) >= (resultado.previstoHoje || 0) ? '#22c55e' : '#ef4444';
+
+      let grid = '';
+      for (let i = 0; i <= 5; i++) {
+        const valor = (maxY / 5) * i;
+        const y = mapY(valor);
+        grid += `<line x1="${left}" y1="${y}" x2="${right}" y2="${y}" stroke="#e5e7eb" stroke-width="1" />`;
+        grid += `<text x="18" y="${y + 4}" font-size="9" font-weight="500" fill="#374151">${formatarNumero(valor)}</text>`;
+      }
+
+      let labels = '';
+      grid += montarLinhasDiariasCurvaPDF(resultado.inicioObra, resultado.fimObra, left, largura, top, bottom);
+
+      pontos.forEach((p) => {
+        const x = mapX(p.data);
+        grid += `<line x1="${x}" y1="${top}" x2="${x}" y2="${bottom}" stroke="#d8dee7" stroke-width="1" stroke-dasharray="4 5" />`;
+        if (p.mostrarLabel !== false && !String(p.tipoData || '').includes('hoje')) {
+          labels += `<text x="${x}" y="260" text-anchor="middle" font-size="8" font-weight="500" fill="#4b5563">${formatarDataCurta(p.data)}</text>`;
+        }
+      });
+
+      let valoresPrev = '';
+      pontosPrev.forEach((p, i) => {
+        if (i % Math.ceil(pontosPrev.length / 6) !== 0 && i !== pontosPrev.length - 1) return;
+        valoresPrev += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#2563eb" />`;
+        valoresPrev += `<rect x="${p.x - 16}" y="${p.y + 8}" width="32" height="16" rx="4" fill="#eff6ff" stroke="#bfdbfe" />`;
+        valoresPrev += `<text x="${p.x}" y="${p.y + 20}" text-anchor="middle" font-size="8" font-weight="600" fill="#1f2937">${formatarNumero(p.valor)}</text>`;
+      });
+
+      let valoresReal = '';
+      pontosReal.forEach((p, i) => {
+        if (i % Math.ceil(pontosReal.length / 5) !== 0 && i !== pontosReal.length - 1) return;
+        valoresReal += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${corLinhaRealizadaPDF}" />`;
+        valoresReal += `<rect x="${p.x - 16}" y="${p.y - 25}" width="32" height="16" rx="4" fill="#fff7ed" stroke="#fed7aa" />`;
+        valoresReal += `<text x="${p.x}" y="${p.y - 13}" text-anchor="middle" font-size="8" font-weight="600" fill="#1f2937">${formatarNumero(p.valor)}</text>`;
+      });
+
+      let linhaHoje = '';
+      const xHoje = calcularXData(resultado.hoje, resultado.inicioObra, resultado.fimObra, left, largura);
+      if (xHoje >= left && xHoje <= right) {
+        linhaHoje = `<line x1="${xHoje}" y1="${top}" x2="${xHoje}" y2="${bottom}" stroke="#111827" stroke-width="2" stroke-dasharray="6 5" />
+          <rect x="${xHoje - 38}" y="27" width="76" height="19" rx="5" fill="#111827" stroke="#ff6a00" />
+          <text x="${xHoje}" y="40" text-anchor="middle" font-size="9" font-weight="900" fill="#ffffff">HOJE ${formatarDataCurta(resultado.hoje)}</text>`;
+      }
+
+      return `
+        <svg width="900" height="280" viewBox="0 0 900 280" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="900" height="280" rx="8" fill="#ffffff" />
+          <text x="450" y="20" text-anchor="middle" font-size="13" font-weight="600" fill="#111827">Planejado x Realizado</text>
+          <line x1="345" y1="33" x2="385" y2="33" stroke="#2563eb" stroke-width="3" />
+          <text x="394" y="37" font-size="9" font-weight="500" fill="#374151">Esforço Acum.</text>
+          <line x1="492" y1="33" x2="532" y2="33" stroke="#ff8c1a" stroke-width="3" />
+          <text x="541" y="37" font-size="9" font-weight="500" fill="#374151">Esforço Real</text>
+          ${grid}
+          <line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" stroke="#9ca3af" stroke-width="1" />
+          <line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" stroke="#9ca3af" stroke-width="1" />
+          <path d="${pathPrev}" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="${pathReal}" fill="none" stroke="${corLinhaRealizadaPDF}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" />
+          ${valoresPrev}${valoresReal}${linhaHoje}${labels}
+        </svg>
+      `;
+    }
+
+    function montarLinhasDiariasCurvaPDF(inicioObra, fimObra, left, largura, top, bottom) {
+      const totalDias = Math.max(1, diasEntre(inicioObra, fimObra));
+      if (totalDias > 95) return '';
+
+      let linhas = '';
+      for (let i = 1; i < totalDias; i++) {
+        const data = adicionarDias(inicioObra, i);
+        if (data.getDay() === 5) continue;
+        const x = calcularXData(data, inicioObra, fimObra, left, largura);
+        linhas += `<line x1="${x}" y1="${top}" x2="${x}" y2="${bottom}" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="2 8" />`;
+      }
+      return linhas;
+    }
+
+    function montarTrechosRealizadoColoridosPDF(pontosReal) {
+      if (!Array.isArray(pontosReal) || pontosReal.length < 2) return '';
+      let trechos = '';
+
+      for (let i = 1; i < pontosReal.length; i++) {
+        const anterior = pontosReal[i - 1];
+        const atual = pontosReal[i];
+        const mediaReal = ((anterior.valor || 0) + (atual.valor || 0)) / 2;
+        const mediaPrevista = ((anterior.previsto || 0) + (atual.previsto || 0)) / 2;
+        const cor = mediaReal >= mediaPrevista ? '#22c55e' : '#ef4444';
+        const cx = (anterior.x + atual.x) / 2;
+        const trecho = `M ${anterior.x} ${anterior.y} C ${cx} ${anterior.y}, ${cx} ${atual.y}, ${atual.x} ${atual.y}`;
+        trechos += `<path d="${trecho}" fill="none" stroke="${cor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" />`;
+      }
+
+      return trechos;
+    }
+
+    function criarFatiaPizza(cx, cy, r, inicioPercentual, fimPercentual, cor) {
+      if (fimPercentual <= inicioPercentual) return '';
+      const inicio = (inicioPercentual / 100) * Math.PI * 2 - Math.PI / 2;
+      const fim = (fimPercentual / 100) * Math.PI * 2 - Math.PI / 2;
+      const x1 = cx + r * Math.cos(inicio);
+      const y1 = cy + r * Math.sin(inicio);
+      const x2 = cx + r * Math.cos(fim);
+      const y2 = cy + r * Math.sin(fim);
+      const grande = fimPercentual - inicioPercentual > 50 ? 1 : 0;
+      return `<path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${grande} 1 ${x2} ${y2} Z" fill="${cor}"></path>`;
+    }
+
+    function voltarMenu() {
+      window.location.href = '../../index.html';
+    }
+
+    function atualizarDashboard() {
+      const dadosSalvos = localStorage.getItem('dadosCronograma');
+
+      if (!dadosSalvos) {
+        document.getElementById('baseDados').textContent = 'DEMO';
+        return;
+      }
+
+      try {
+        const dados = JSON.parse(dadosSalvos);
+        document.getElementById('baseDados').textContent = 'CRONOGRAMA';
+        montarIndicadores(dados);
+      } catch (erro) {
+        console.error('Erro ao ler dados do cronograma:', erro);
+        document.getElementById('baseDados').textContent = 'ERRO';
+      }
+    }
+
+    function montarIndicadores(dados) {
+      if (!Array.isArray(dados)) return;
+
+      const total = dados.length;
+      const concluidas = dados.filter(item => normalizar(item.STATUS) === 'CONCLUIDO' || numero(item.REALIZADO) >= 100).length;
+      const atrasadas = dados.filter(item => normalizar(item.STATUS) === 'ATRASADO').length;
+      const andamento = dados.filter(item => normalizar(item.STATUS) === 'EM ANDAMENTO').length;
+
+      const somaRealizado = dados.reduce((acc, item) => acc + numero(item.REALIZADO), 0);
+      const avanco = total > 0 ? Math.round(somaRealizado / total) : 0;
+      const resultadoCurva = gerarPontosCurvaS(dados, avanco);
+      const realizadoHoje = Math.round(resultadoCurva.realizadoHoje || avanco || 0);
+      const previstoHoje = Math.round(resultadoCurva.previstoHoje || 0);
+      const aConcluir = Math.max(0, 100 - realizadoHoje);
+      const diferenca = realizadoHoje - previstoHoje;
+      const situacao = definirSituacaoObra(diferenca, total);
+
+      document.getElementById('cardRealizado').textContent = realizadoHoje + '%';
+      document.getElementById('cardPrevisto').textContent = previstoHoje + '%';
+      document.getElementById('cardAConcluir').textContent = aConcluir + '%';
+      document.getElementById('cardTotal').textContent = total;
+      document.getElementById('cardConcluidas').textContent = concluidas;
+      document.getElementById('cardSituacao').textContent = situacao.texto;
+      document.getElementById('cardDiferenca').textContent = situacao.descricao;
+      document.querySelector('.card-situacao').className = 'card card-situacao ' + situacao.classe;
+      document.getElementById('nomeObraCurva').textContent = buscarNomeObra(dados);
+
+      const pConcluido = total > 0 ? Math.round((concluidas / total) * 100) : 0;
+      const pAndamento = total > 0 ? Math.round((andamento / total) * 100) : 0;
+      const pAtrasado = Math.max(0, 100 - pConcluido - pAndamento);
+
+      document.getElementById('statusConcluido').textContent = pConcluido + '%';
+      document.getElementById('statusAndamento').textContent = pAndamento + '%';
+      document.getElementById('statusAtrasado').textContent = pAtrasado + '%';
+
+      document.getElementById('pizzaStatus').style.background =
+        `conic-gradient(var(--success) 0 ${pConcluido}%, var(--warning) ${pConcluido}% ${pConcluido + pAndamento}%, #cbd5e1 ${pConcluido + pAndamento}% 100%)`;
+
+      desenharCurvaS(resultadoCurva);
+      salvarGraficosDashboardParaRelatorio({
+        dados,
+        obra: buscarNomeObra(dados),
+        curva: resultadoCurva,
+        status: {
+          concluido: pConcluido,
+          andamento: pAndamento,
+          atrasado: pAtrasado
+        },
+        cards: {
+          realizado: realizadoHoje + '%',
+          previstoHoje: previstoHoje + '%',
+          aConcluir: aConcluir + '%',
+          atividades: total,
+          atividadesFeitas: concluidas,
+          situacao: situacao.texto,
+          diferenca: situacao.descricao
+        }
+      });
+      montarTabela(dados);
+    }
+
+    function atualizarCurvaVisual(avanco, dados) {
+      const resultado = gerarPontosCurvaS(dados, avanco);
+      desenharCurvaS(resultado);
+    }
+
+    function buscarNomeObra(dados) {
+      try {
+        const resumo = JSON.parse(localStorage.getItem('resumoCronogramaDashboard') || '{}');
+        if (resumo.obra || resumo.OBRA || resumo.nomeObra) return String(resumo.obra || resumo.OBRA || resumo.nomeObra).toUpperCase();
+      } catch (erro) {}
+
+      const primeiro = Array.isArray(dados) && dados.length ? dados[0] : {};
+      return String(primeiro.OBRA || primeiro.Obra || primeiro.obra || primeiro.NOME_OBRA || primeiro['NOME DA OBRA'] || 'OBRA NÃO IDENTIFICADA').toUpperCase();
+    }
+
+    function definirSituacaoObra(diferenca, total) {
+      if (!total) return { texto: 'SEM DADOS', descricao: 'Aguardando cronograma', classe: '' };
+      if (diferenca < -2) return { texto: 'ATRASADA', descricao: Math.abs(diferenca) + '% abaixo do previsto', classe: 'atrasada' };
+      if (diferenca > 2) return { texto: 'ADIANTADA', descricao: diferenca + '% acima do previsto', classe: 'adiantada' };
+      return { texto: 'EM DIA', descricao: 'Dentro da previsão', classe: 'em-dia' };
+    }
+
+    function gerarPontosCurvaS(dados, avanco) {
+      const atividades = Array.isArray(dados) ? dados : [];
+      const hoje = zerarHora(new Date());
+
+      // Mantém todas as atividades que possuem período válido.
+      // A Curva S não pode cair em um gráfico de demonstração apenas porque
+      // uma aba não trouxe PESO preenchido ou o trouxe zerado.
+      const atividadesComData = atividades.map(item => {
+        return {
+          inicio: parseDataSimples(item.INICIO || item['INÍCIO'] || item.DATA_INICIO || item['DATA INÍCIO']),
+          fim: parseDataSimples(item.FIM || item.DATA_FIM || item['DATA FIM']),
+          peso: numero(item.PESO || item.PESO_PERCENTUAL || item['PESO %']),
+          realizado: numero(item.REALIZADO || item['REALIZADO %'])
+        };
+      }).filter(item => item.inicio && item.fim);
+
+      if (!atividadesComData.length) {
+        return gerarCurvaSemDados();
+      }
+
+      const existePesoInformado = atividadesComData.some(item => item.peso > 0);
+
+      // Quando a aba possui PESO, preserva o cálculo ponderado.
+      // Quando a aba não possui PESO válido, cada atividade recebe peso igual,
+      // mantendo o gráfico vinculado às datas reais da própria obra.
+      const preparadas = atividadesComData
+        .map(item => ({
+          inicio: item.inicio,
+          fim: item.fim,
+          peso: existePesoInformado ? Math.max(0, item.peso) : 1,
+          realizado: Math.max(0, Math.min(100, item.realizado))
+        }))
+        .filter(item => item.peso > 0);
+
+      if (!preparadas.length) {
+        return gerarCurvaSemDados();
+      }
+
+      const inicioObra = new Date(Math.min(...preparadas.map(item => item.inicio.getTime())));
+      const fimObra = new Date(Math.max(...preparadas.map(item => item.fim.getTime())));
+      const totalPeso = preparadas.reduce((acc, item) => acc + item.peso, 0) || 1;
+      const pontos = [];
+      const datasMedicao = gerarDatasCurvaComSextas(inicioObra, fimObra, hoje);
+
+      datasMedicao.forEach(item => {
+        pontos.push({
+          data: item.data,
+          previsto: calcularPrevistoNaData(preparadas, item.data, totalPeso),
+          realizado: calcularRealizadoNaData(preparadas, item.data, hoje, totalPeso),
+          mostrarLabel: item.mostrarLabel,
+          tipoData: item.tipo
+        });
+      });
+
+      inserirPontoHojeNaCurva(pontos, hoje, inicioObra, fimObra, preparadas, totalPeso);
+
+      const previstoHoje = calcularPrevistoNaData(preparadas, hoje, totalPeso);
+      const realizadoHoje = preparadas.reduce(
+        (acc, item) => acc + (item.peso * item.realizado / 100),
+        0
+      ) / totalPeso * 100;
+
+      return {
+        pontos,
+        inicioObra,
+        fimObra,
+        hoje,
+        previstoHoje,
+        realizadoHoje,
+        pesoCalculadoPorAtividade: !existePesoInformado
+      };
+    }
+
+    function gerarCurvaSemDados() {
+      const hoje = zerarHora(new Date());
+      return {
+        pontos: [],
+        inicioObra: hoje,
+        fimObra: adicionarDias(hoje, 1),
+        hoje,
+        previstoHoje: 0,
+        realizadoHoje: 0,
+        semDadosValidos: true
+      };
+    }
+
+    function gerarDatasCurvaComSextas(inicioObra, fimObra, hoje) {
+      const mapa = new Map();
+
+      function incluir(data, tipo, mostrarLabel) {
+        const dataLimpa = zerarHora(data);
+        if (dataLimpa < inicioObra || dataLimpa > fimObra) return;
+        const chave = dataLimpa.getTime();
+        const existente = mapa.get(chave);
+        mapa.set(chave, {
+          data: dataLimpa,
+          tipo: existente ? existente.tipo + '-' + tipo : tipo,
+          mostrarLabel: Boolean((existente && existente.mostrarLabel) || mostrarLabel)
+        });
+      }
+
+      incluir(inicioObra, 'inicio', false);
+      incluir(fimObra, 'fim', false);
+
+      let sexta = zerarHora(inicioObra);
+      const diasAteSexta = (5 - sexta.getDay() + 7) % 7;
+      sexta = adicionarDias(sexta, diasAteSexta);
+
+      while (sexta <= fimObra) {
+        incluir(sexta, 'sexta-medicao', true);
+        sexta = adicionarDias(sexta, 7);
+      }
+
+      if (hoje >= inicioObra && hoje <= fimObra) {
+        incluir(hoje, 'hoje', true);
+      }
+
+      return Array.from(mapa.values()).sort((a, b) => a.data.getTime() - b.data.getTime());
+    }
+
+    function inserirPontoHojeNaCurva(pontos, hoje, inicioObra, fimObra, atividades, totalPeso) {
+      if (!Array.isArray(pontos) || !pontos.length) return;
+      if (hoje < inicioObra || hoje > fimObra) return;
+
+      const hojeMs = hoje.getTime();
+      const jaExisteHoje = pontos.some(ponto => ponto.data && ponto.data.getTime() === hojeMs);
+      if (!jaExisteHoje) {
+        pontos.push({
+          data: hoje,
+          previsto: calcularPrevistoNaData(atividades, hoje, totalPeso),
+          realizado: calcularRealizadoNaData(atividades, hoje, hoje, totalPeso),
+          hoje: true
+        });
+      }
+
+      pontos.sort((a, b) => a.data.getTime() - b.data.getTime());
+
+      for (let i = pontos.length - 1; i > 0; i--) {
+        if (pontos[i].data.getTime() === pontos[i - 1].data.getTime()) {
+          pontos.splice(i, 1);
+        }
+      }
+    }
+
+    function calcularPrevistoNaData(atividades, data, totalPeso) {
+      const soma = atividades.reduce((acc, item) => {
+        if (data < item.inicio) return acc;
+        if (data >= item.fim) return acc + item.peso;
+        const duracao = Math.max(1, diasEntre(item.inicio, item.fim));
+        const decorrido = Math.max(0, diasEntre(item.inicio, data));
+        return acc + item.peso * (decorrido / duracao);
+      }, 0);
+      return Math.max(0, Math.min(100, (soma / totalPeso) * 100));
+    }
+
+    function calcularRealizadoNaData(atividades, data, hoje, totalPeso) {
+      if (data > hoje) return null;
+      const realizadoAtual = atividades.reduce((acc, item) => acc + (item.peso * Math.min(100, Math.max(0, item.realizado)) / 100), 0) / totalPeso * 100;
+      const inicioObra = new Date(Math.min(...atividades.map(item => item.inicio.getTime())));
+      const diasAteHoje = Math.max(1, diasEntre(inicioObra, hoje));
+      const diasAteData = Math.max(0, diasEntre(inicioObra, data));
+      return Math.max(0, Math.min(100, realizadoAtual * Math.min(1, diasAteData / diasAteHoje)));
+    }
+
+    function desenharCurvaS(resultado) {
+      const grid = document.getElementById('gridCurvaS');
+      const labels = document.getElementById('labelsCurvaS');
+      const pathPrevisto = document.getElementById('linhaPrevista');
+      const pathRealizado = document.getElementById('linhaRealizado');
+      const linhaRealizadoSegmentos = document.getElementById('linhaRealizadoSegmentos');
+      const pontosPrevistos = document.getElementById('pontosPrevistos');
+      const pontosRealizados = document.getElementById('pontosRealizados');
+      const linhaHojeGrupo = document.getElementById('linhaHojeGrupo');
+      if (!grid || !resultado || !resultado.pontos) return;
+
+      grid.innerHTML = '';
+      labels.innerHTML = '';
+      pontosPrevistos.innerHTML = '';
+      pontosRealizados.innerHTML = '';
+      linhaHojeGrupo.innerHTML = '';
+      if (linhaRealizadoSegmentos) linhaRealizadoSegmentos.innerHTML = '';
+
+      const margemLeft = 70;
+      const largura = 800;
+      const altura = 250;
+      const topo = 70;
+      const base = 320;
+      const maxY = Math.max(100, Math.ceil(Math.max(...resultado.pontos.map(p => p.previsto || 0), resultado.realizadoHoje || 0) / 10) * 10);
+
+      for (let i = 0; i <= 5; i++) {
+        const valor = (maxY / 5) * i;
+        const y = base - (valor / maxY) * altura;
+        grid.insertAdjacentHTML('beforeend', `<line x1="${margemLeft}" y1="${y}" x2="870" y2="${y}" stroke="rgba(17,24,39,.10)" stroke-width="1" />`);
+        labels.insertAdjacentHTML('beforeend', `<text x="24" y="${y + 4}" class="axis-label">${formatarNumero(valor)}</text>`);
+      }
+
+      desenharLinhasDiariasCurva(grid, resultado.inicioObra, resultado.fimObra, margemLeft, largura, topo, base);
+
+      resultado.pontos.forEach((p) => {
+        const x = calcularXData(p.data, resultado.inicioObra, resultado.fimObra, margemLeft, largura);
+        grid.insertAdjacentHTML('beforeend', `<line x1="${x}" y1="${topo}" x2="${x}" y2="${base}" stroke="rgba(17,24,39,.13)" stroke-width="1" stroke-dasharray="4 5" />`);
+        if (p.mostrarLabel !== false && !String(p.tipoData || '').includes('hoje')) {
+          labels.insertAdjacentHTML('beforeend', `<text x="${x}" y="344" text-anchor="middle" class="axis-date-label">${formatarDataCurta(p.data)}</text>`);
+        }
+      });
+
+      const pontosPrev = resultado.pontos.map((p) => ({
+        x: calcularXData(p.data, resultado.inicioObra, resultado.fimObra, margemLeft, largura),
+        y: base - ((p.previsto || 0) / maxY) * altura,
+        valor: p.previsto || 0
+      }));
+
+      const pontosReal = resultado.pontos.map((p) => p.realizado === null ? null : ({
+        x: calcularXData(p.data, resultado.inicioObra, resultado.fimObra, margemLeft, largura),
+        y: base - ((p.realizado || 0) / maxY) * altura,
+        valor: p.realizado || 0,
+        previsto: p.previsto || 0
+      })).filter(Boolean);
+
+      const corLinhaRealizada = (resultado.realizadoHoje || 0) >= (resultado.previstoHoje || 0) ? '#22c55e' : '#ef4444';
+      pathPrevisto.setAttribute('d', montarPath(pontosPrev));
+      pathRealizado.setAttribute('d', montarPath(pontosReal));
+      pathRealizado.setAttribute('stroke', corLinhaRealizada);
+      if (linhaRealizadoSegmentos) linhaRealizadoSegmentos.innerHTML = '';
+
+      pontosPrev.forEach((p, index) => {
+        if (index % Math.ceil(pontosPrev.length / 7) !== 0 && index !== pontosPrev.length - 1) return;
+        pontosPrevistos.insertAdjacentHTML('beforeend', `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="#2563eb"></circle><rect x="${p.x - 16}" y="${p.y + 9}" width="32" height="17" class="chart-value-box"></rect><text x="${p.x}" y="${p.y + 21}" text-anchor="middle" class="chart-value-label">${formatarNumero(p.valor)}</text>`);
+      });
+
+      pontosReal.forEach((p, index) => {
+        if (index % Math.ceil(pontosReal.length / 6) !== 0 && index !== pontosReal.length - 1) return;
+        pontosRealizados.insertAdjacentHTML('beforeend', `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="${corLinhaRealizada}"></circle><rect x="${p.x - 18}" y="${p.y - 31}" width="36" height="18" class="chart-value-box"></rect><text x="${p.x}" y="${p.y - 18}" text-anchor="middle" class="chart-value-label">${formatarNumero(p.valor)}</text>`);
+      });
+
+      const xHoje = calcularXData(resultado.hoje, resultado.inicioObra, resultado.fimObra, margemLeft, largura);
+      if (xHoje >= margemLeft && xHoje <= margemLeft + largura) {
+        const yPrevHoje = base - (resultado.previstoHoje / maxY) * altura;
+        const yRealHoje = base - (resultado.realizadoHoje / maxY) * altura;
+        linhaHojeGrupo.insertAdjacentHTML('beforeend', `<line x1="${xHoje}" y1="${topo}" x2="${xHoje}" y2="${base}" stroke="#111827" stroke-width="2" stroke-dasharray="7 6"></line><rect x="${xHoje - 43}" y="52" width="86" height="24" class="today-label-box"></rect><text x="${xHoje}" y="68" text-anchor="middle" class="today-label-text">HOJE ${formatarDataCurta(resultado.hoje)}</text><circle cx="${xHoje}" cy="${yPrevHoje}" r="6" fill="#2563eb" stroke="#ffffff" stroke-width="2"></circle><circle cx="${xHoje}" cy="${yRealHoje}" r="6" fill="${corLinhaRealizada}" stroke="#ffffff" stroke-width="2"></circle>`);
+      }
+    }
+
+    function desenharLinhaRealizadoPorSituacao(grupo, pontosReal) {
+      if (!grupo || !Array.isArray(pontosReal) || pontosReal.length < 2) return;
+
+      for (let i = 1; i < pontosReal.length; i++) {
+        const anterior = pontosReal[i - 1];
+        const atual = pontosReal[i];
+        const mediaReal = ((anterior.valor || 0) + (atual.valor || 0)) / 2;
+        const mediaPrevista = ((anterior.previsto || 0) + (atual.previsto || 0)) / 2;
+        const cor = mediaReal >= mediaPrevista ? '#22c55e' : '#ef4444';
+        const cx = (anterior.x + atual.x) / 2;
+        const trecho = `M ${anterior.x} ${anterior.y} C ${cx} ${anterior.y}, ${cx} ${atual.y}, ${atual.x} ${atual.y}`;
+
+        grupo.insertAdjacentHTML('beforeend', `<path d="${trecho}" fill="none" stroke="${cor}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5"></path>`);
+      }
+    }
+
+    function desenharLinhasDiariasCurva(grid, inicioObra, fimObra, margemLeft, largura, topo, base) {
+      if (!grid || !inicioObra || !fimObra) return;
+      const totalDias = Math.max(1, diasEntre(inicioObra, fimObra));
+      if (totalDias > 95) return;
+
+      for (let i = 1; i < totalDias; i++) {
+        const data = adicionarDias(inicioObra, i);
+        if (data.getDay() === 5) continue;
+        const x = calcularXData(data, inicioObra, fimObra, margemLeft, largura);
+        grid.insertAdjacentHTML('beforeend', `<line x1="${x}" y1="${topo}" x2="${x}" y2="${base}" stroke="rgba(17,24,39,.045)" stroke-width="1" stroke-dasharray="2 8" />`);
+      }
+    }
+
+    function montarPath(pontos) {
+      if (!pontos.length) return '';
+      let d = `M ${pontos[0].x} ${pontos[0].y}`;
+      for (let i = 1; i < pontos.length; i++) {
+        const a = pontos[i - 1];
+        const b = pontos[i];
+        const cx = (a.x + b.x) / 2;
+        d += ` C ${cx} ${a.y}, ${cx} ${b.y}, ${b.x} ${b.y}`;
+      }
+      return d;
+    }
+
+    function gerarCurvaDemo(avanco) {
+      const hoje = zerarHora(new Date());
+      const inicioObra = adicionarDias(hoje, -5);
+      const fimObra = adicionarDias(hoje, 5);
+      const pontos = Array.from({ length: 11 }, (_, i) => ({ data: adicionarDias(inicioObra, i), previsto: Math.round(100 * (1 / (1 + Math.exp(-8 * ((i / 10) - 0.5))))), realizado: i <= 5 ? Math.round((avanco || 55) * (i / 5)) : null }));
+      return { pontos, inicioObra, fimObra, hoje, previstoHoje: 50, realizadoHoje: avanco || 55 };
+    }
+
+    function calcularXData(data, inicio, fim, x0, largura) {
+      const total = Math.max(1, fim.getTime() - inicio.getTime());
+      return x0 + ((data.getTime() - inicio.getTime()) / total) * largura;
+    }
+
+    function parseDataSimples(valor) {
+      if (!valor) return null;
+      if (valor instanceof Date && !isNaN(valor)) return zerarHora(valor);
+      const texto = String(valor).trim();
+      if (!texto) return null;
+      if (texto.includes('/')) {
+        const partes = texto.split('/');
+        const ano = Number(partes[2].length === 2 ? '20' + partes[2] : partes[2]);
+        return zerarHora(new Date(ano, Number(partes[1]) - 1, Number(partes[0])));
+      }
+      if (texto.includes('-')) {
+        const partes = texto.slice(0, 10).split('-');
+        return zerarHora(new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2])));
+      }
+      const data = new Date(texto);
+      return isNaN(data) ? null : zerarHora(data);
+    }
+
+    function zerarHora(data) {
+      return new Date(data.getFullYear(), data.getMonth(), data.getDate());
+    }
+
+    function adicionarDias(data, dias) {
+      const nova = new Date(data);
+      nova.setDate(nova.getDate() + dias);
+      return zerarHora(nova);
+    }
+
+    function diasEntre(inicio, fim) {
+      return Math.round((zerarHora(fim) - zerarHora(inicio)) / 86400000);
+    }
+
+    function formatarDataCurta(data) {
+      return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    }
+
+    function formatarNumero(valor) {
+      return Number(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    }
+
+    function salvarGraficosDashboardParaRelatorio(pacote = null) {
+      try {
+        const dados = pacote?.dados || JSON.parse(localStorage.getItem('dadosCronograma') || '[]');
+        const obra = pacote?.obra || buscarNomeObra(dados);
+        const curva = pacote?.curva || gerarPontosCurvaS(dados, 0);
+
+        const status = pacote?.status || {
+          concluido: numero(document.getElementById('statusConcluido')?.textContent || '0'),
+          andamento: numero(document.getElementById('statusAndamento')?.textContent || '0'),
+          atrasado: numero(document.getElementById('statusAtrasado')?.textContent || '0')
+        };
+
+        const cards = pacote?.cards || {
+          realizado: document.getElementById('cardRealizado')?.textContent || '0%',
+          previstoHoje: document.getElementById('cardPrevisto')?.textContent || '0%',
+          aConcluir: document.getElementById('cardAConcluir')?.textContent || '100%',
+          atividades: document.getElementById('cardTotal')?.textContent || '0',
+          atividadesFeitas: document.getElementById('cardConcluidas')?.textContent || '0',
+          situacao: document.getElementById('cardSituacao')?.textContent || 'SEM DADOS',
+          diferenca: document.getElementById('cardDiferenca')?.textContent || ''
+        };
+
+        const curvaSvg = montarCurvaSvgPDF(dados);
+        const pizzaSvg = montarPizzaSvgPDF(status.concluido, status.andamento, status.atrasado);
+
+        const pacoteDashboard = {
+          atualizadoEm: new Date().toISOString(),
+          obra,
+          cards,
+          status,
+          curva,
+          curvaSvg,
+          pizzaSvg
+        };
+
+        localStorage.setItem('dashboardRelatorioGraficos', JSON.stringify(pacoteDashboard));
+        localStorage.setItem('graficoCurvaS_dashboard', curvaSvg);
+        localStorage.setItem('graficoPizza_dashboard', pizzaSvg);
+        localStorage.setItem('cardsDashboard_relatorio', JSON.stringify(cards));
+        localStorage.setItem('statusDashboard_relatorio', JSON.stringify(status));
+      } catch (erro) {
+        console.error('Erro ao salvar gráficos do dashboard para relatório:', erro);
+      }
+    }
+
+    function montarTabela(lista) {
+      const tbody = document.getElementById('tabelaResumo');
+      tbody.innerHTML = '';
+
+      if (!Array.isArray(lista) || !lista.length) {
+        tbody.innerHTML = '<tr><td colspan="10">Nenhuma obra carregada. Selecione uma aba e clique em Carregar Online.</td></tr>';
+        return;
+      }
+
+      lista.forEach(item => {
+        const status = item.STATUS || 'PENDENTE';
+        const classe = classeStatus(status);
+        const tipoServico = item['TIPO DE SERVIÇO'] || item.TIPO_SERVICO || item['TIPO DE SERVICO'] || '';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.SETOR || ''}</td>
+          <td>${item.LOCAL || ''}</td>
+          <td>${tipoServico || ''}</td>
+          <td>${item.ATIVIDADE || ''}</td>
+          <td>${item.DIFICULDADE || ''}</td>
+          <td>${item.INICIO || item['INÍCIO'] || ''}</td>
+          <td>${item.FIM || ''}</td>
+          <td><span class="tag ${classe}">${status}</span></td>
+          <td>${item.REALIZADO || '0%'}</td>
+          <td>${item.PESO || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function normalizar(valor) {
+      return String(valor || '')
+        .trim()
+        .toUpperCase()
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '');
+    }
+
+    function numero(valor) {
+      if (typeof valor === 'number') return valor;
+      return Number(String(valor || '0').replace('%', '').replace(',', '.')) || 0;
+    }
+
+    function classeStatus(status) {
+      const s = normalizar(status);
+      if (s === 'CONCLUIDO') return 'ok';
+      if (s === 'ATRASADO') return 'atraso';
+      return 'andamento';
+    }
+
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbycTigp6BcQladVFhuwFqpOZH_4_DnC3Z00eoUxcYvGK-Q9aH7ZmjxVbLpnOMwA5OVa/exec';
+
+    async function carregarListaAbasDashboard() {
+      const select = document.getElementById('selectAbaDashboard');
+      const status = document.getElementById('statusOnlineDashboard');
+      if (!select || !status) return;
+
+      status.className = 'online-status';
+      status.textContent = 'Conectando à planilha online...';
+
+      try {
+        const resposta = await fetch(WEBAPP_URL + '?action=listSheets&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+        const texto = await resposta.text();
+        const resultado = JSON.parse(texto);
+        const abas = resultado.abas || resultado.sheets || resultado.planilhas || [];
+
+        select.innerHTML = '<option value="">Selecione a obra / aba</option>';
+
+        if ((resultado.status === 'ok' || resultado.success === true) && Array.isArray(abas)) {
+          abas.forEach(function(aba) {
+            const option = document.createElement('option');
+            option.value = aba;
+            option.textContent = aba;
+            select.appendChild(option);
+          });
+          status.textContent = 'Planilha online disponível.';
+          status.className = 'online-status ok';
+        } else {
+          status.textContent = resultado.mensagem || resultado.message || 'Não foi possível listar as abas.';
+          status.className = 'online-status erro';
+        }
+      } catch (erro) {
+        console.error('Erro ao listar abas no dashboard:', erro);
+        select.innerHTML = '<option value="">Erro ao buscar abas</option>';
+        status.textContent = 'Erro ao conectar no Google Sheets.';
+        status.className = 'online-status erro';
+      }
+    }
+
+    async function carregarDadosOnlineDashboard() {
+      const select = document.getElementById('selectAbaDashboard');
+      const status = document.getElementById('statusOnlineDashboard');
+      const botao = document.getElementById('btnCarregarOnlineDashboard');
+      const aba = select ? select.value : '';
+
+      if (!aba) {
+        status.textContent = 'Selecione uma obra / aba para carregar.';
+        status.className = 'online-status erro';
+        return;
+      }
+
+      if (botao) botao.disabled = true;
+      status.textContent = 'Carregando planilha online...';
+      status.className = 'online-status';
+
+      try {
+        const resposta = await fetch(WEBAPP_URL + '?sheetName=' + encodeURIComponent(aba) + '&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+        const texto = await resposta.text();
+        const resultado = JSON.parse(texto);
+        const dadosRecebidos = resultado.dados || resultado.data || resultado.values || [];
+
+        if (!(resultado.status === 'ok' || resultado.success === true) || !Array.isArray(dadosRecebidos) || !dadosRecebidos.length) {
+          status.textContent = resultado.mensagem || resultado.message || 'Nenhum dado encontrado nesta aba.';
+          status.className = 'online-status erro';
+          return;
+        }
+
+        const matriz = dadosRecebidos.map(function(linha) {
+          return Array.isArray(linha) ? linha : [linha];
+        });
+        const dadosConvertidos = converterMatrizOnlineDashboard(matriz, aba);
+
+        if (!dadosConvertidos.length) {
+          status.textContent = 'A aba carregou, mas não encontrei as colunas ATIVIDADE, STATUS e REALIZADO.';
+          status.className = 'online-status erro';
+          return;
+        }
+
+        localStorage.setItem('dadosCronograma', JSON.stringify(dadosConvertidos));
+        localStorage.setItem('matrizCronogramaOnline', JSON.stringify(matriz));
+        localStorage.setItem('resumoCronogramaDashboard', JSON.stringify({ obra: aba, origem: 'online', atualizadoEm: new Date().toISOString() }));
+
+        document.getElementById('baseDados').textContent = 'ONLINE';
+        montarIndicadores(dadosConvertidos);
+        status.textContent = 'Planilha online carregada com sucesso.';
+        status.className = 'online-status ok';
+      } catch (erro) {
+        console.error('Erro ao carregar online no dashboard:', erro);
+        status.textContent = 'Erro ao carregar dados online.';
+        status.className = 'online-status erro';
+      } finally {
+        if (botao) botao.disabled = false;
+      }
+    }
+
+    function converterMatrizOnlineDashboard(matriz, nomeObra) {
+      const headerIndex = matriz.findIndex(function(linha) {
+        const texto = linha.map(function(celula) { return limparCampoOnlineDashboard(celula); }).join('|');
+        return texto.indexOf('ATIVIDADE') >= 0 && texto.indexOf('STATUS') >= 0 && texto.indexOf('REALIZADO') >= 0;
+      });
+      if (headerIndex < 0) return [];
+
+      const cabecalhos = matriz[headerIndex].map(function(celula) { return limparCampoOnlineDashboard(celula); });
+      const linhas = matriz.slice(headerIndex + 1);
+      let ultimoTipoServico = '';
+
+      return linhas.map(function(linha) {
+        const obj = {};
+        cabecalhos.forEach(function(cabecalho, index) {
+          if (cabecalho) obj[cabecalho] = linha[index] == null ? '' : linha[index];
+        });
+
+        const tipoServico = obj['TIPO DE SERVICO'] || obj['TIPO SERVICO'] || obj['SERVICO'] || linha[2] || '';
+        if (String(tipoServico).trim()) ultimoTipoServico = tipoServico;
+
+        return {
+          OBRA: nomeObra,
+          SETOR: obj.SETOR || linha[0] || '',
+          LOCAL: obj.LOCAL || linha[1] || '',
+          'TIPO DE SERVIÇO': tipoServico || '',
+          TIPO_SERVICO: tipoServico || '',
+          ATIVIDADE: obj.ATIVIDADE || linha[3] || '',
+          DIFICULDADE: obj.DIFICULDADE || linha[4] || '',
+          INICIO: obj.INICIO || obj['INÍCIO'] || linha[5] || '',
+          FIM: obj.FIM || linha[6] || '',
+          STATUS: obj.STATUS || linha[7] || '',
+          REALIZADO: obj.REALIZADO || linha[8] || '',
+          PESO: obj.PESO || linha[9] || ''
+        };
+      }).filter(function(item) {
+        return String(item.ATIVIDADE || '').trim();
+      });
+    }
+
+    function limparCampoOnlineDashboard(valor) {
+      return normalizar(valor).replaceAll('_', ' ').replaceAll('-', ' ').trim();
+    }
+
+    function exportarRelatorioDashboardPDF() {
+      const dados = JSON.parse(localStorage.getItem('dadosCronograma') || '[]');
+      if (!Array.isArray(dados) || !dados.length) {
+        alert('Carregue uma obra/aba online antes de gerar o relatório.');
+        return;
+      }
+
+      montarIndicadores(dados);
+
+      const obra = buscarNomeObra(dados);
+      const setor = buscarPrimeiroCampo(dados, ['SETOR']) || '-';
+      const local = buscarPrimeiroCampo(dados, ['LOCAL']) || '-';
+      const empresa = buscarEmpresaRelatorio(dados) || '-';
+      const dataAtual = new Date().toLocaleDateString('pt-BR');
+      const horaAtual = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const linhas = montarLinhasRelatorioDashboard(dados);
+      const resumoTipos = montarResumoTiposServicoRelatorio(dados);
+      const curva = montarCurvaSvgPDF(dados);
+      const realizadoGrafico = numero(document.getElementById('cardRealizado')?.textContent || '0');
+      const aConcluirGrafico = Math.max(0, 100 - realizadoGrafico);
+      const pizza = montarPizzaSvgPDF(realizadoGrafico, aConcluirGrafico, 0);
+
+      const corpoTabela = linhas.map(item => `
+        <tr>
+          <td>${limparTexto(item.tipoServico)}</td>
+          <td>${limparTexto(item.atividade)}</td>
+          <td>${limparTexto(item.status)}</td>
+          <td>${limparTexto(item.realizado)}</td>
+        </tr>
+      `).join('');
+
+      const corpoResumoTipos = resumoTipos.map(item => `
+        <tr>
+          <td>${limparTexto(item.tipoServico)}</td>
+          <td>${item.totalAtividades}</td>
+          <td>${item.atividadesConcluidas}</td>
+          <td><strong>${item.percentualConclusao}%</strong></td>
+        </tr>
+      `).join('') || '<tr><td colspan="4">Nenhum tipo de serviço encontrado no cronograma.</td></tr>';
+
+      const relatorio = document.getElementById('relatorioPDF');
+      relatorio.innerHTML = `
+        <section class="relatorio-pdf relatorio-pdf-direto">
+          <div class="pdf-header">
+            <div>
+              <h1>Relatório de Avanço Físico</h1>
+              <div class="subtitulo-pdf">
+                <strong>Obra:</strong> ${limparTexto(obra)} &nbsp; | &nbsp;
+                <strong>Setor:</strong> ${limparTexto(setor)} &nbsp; | &nbsp;
+                <strong>Local:</strong> ${limparTexto(local)} &nbsp; | &nbsp;
+                <strong>Empresa:</strong> ${limparTexto(empresa)} &nbsp; | &nbsp;
+                <strong>Emissão:</strong> ${dataAtual} às ${horaAtual}
+              </div>
+            </div>
+            <div class="pdf-selo">DASHBOARD</div>
+          </div>
+
+          <div class="relatorio-grid-cards">
+            <div class="relatorio-card"><small>Realizado</small><strong>${document.getElementById('cardRealizado')?.textContent || '0%'}</strong></div>
+            <div class="relatorio-card"><small>Previsto hoje</small><strong>${document.getElementById('cardPrevisto')?.textContent || '0%'}</strong></div>
+            <div class="relatorio-card"><small>A concluir</small><strong>${document.getElementById('cardAConcluir')?.textContent || '100%'}</strong></div>
+            <div class="relatorio-card"><small>Atividades</small><strong>${document.getElementById('cardTotal')?.textContent || '0'}</strong></div>
+            <div class="relatorio-card"><small>Atividades feitas</small><strong>${document.getElementById('cardConcluidas')?.textContent || '0'}</strong></div>
+            <div class="relatorio-card"><small>Situação</small><strong>${document.getElementById('cardSituacao')?.textContent || 'SEM DADOS'}</strong></div>
+          </div>
+
+          <h2>Indicadores Gráficos</h2>
+          <div class="relatorio-graficos">
+            <div class="relatorio-grafico-box relatorio-curva-box">${curva}</div>
+            <div class="relatorio-grafico-box relatorio-pizza-box">
+              <h3>Realizado x A Concluir</h3>
+              ${pizza}
+              
+            </div>
+          </div>
+
+          <h2>Resumo por Tipo de Serviço</h2>
+          <table class="tabela-resumo-tipos-pdf">
+            <thead>
+              <tr>
+                <th>Tipo de Serviço</th>
+                <th style="width:16%;">Atividades</th>
+                <th style="width:18%;">Concluídas</th>
+                <th style="width:18%;">% Conclusão</th>
+              </tr>
+            </thead>
+            <tbody>${corpoResumoTipos}</tbody>
+          </table>
+
+          <h2 class="titulo-atividades-pdf">Atividades do Cronograma</h2>
+          <table class="tabela-atividades-pdf">
+            <thead>
+              <tr>
+                <th style="width:24%;">Tipo de Serviço</th>
+                <th>Atividade</th>
+                <th style="width:16%;">Status</th>
+                <th style="width:13%;">Realizado</th>
+              </tr>
+            </thead>
+            <tbody>${corpoTabela}</tbody>
+          </table>
+        </section>
+      `;
+
+      if (!window.html2pdf) {
+        document.body.classList.add('imprimindo-pdf');
+        setTimeout(() => {
+          window.print();
+          setTimeout(() => document.body.classList.remove('imprimindo-pdf'), 700);
+        }, 250);
+        return;
+      }
+
+      const nomeArquivo = 'relatorio-avanco-' + limparNomeArquivo(obra) + '.pdf';
+      html2pdf().set({
+        margin: [4, 5, 5, 5],
+        filename: nomeArquivo,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: ['css', 'legacy'], avoid: ['.pdf-header', '.relatorio-grid-cards', '.relatorio-graficos', '.relatorio-card', '.tabela-resumo-tipos-pdf', '.titulo-atividades-pdf', '.tabela-atividades-pdf tr'] }
+      }).from(relatorio.firstElementChild).save();
+    }
+
+    function montarLinhasRelatorioDashboard(dados) {
+      return dados.map(item => {
+        const tipoLido = item['TIPO DE SERVIÇO'] || item.TIPO_SERVICO || item['TIPO DE SERVICO'] || item.SERVICO || item['SERVIÇO'] || '';
+        return {
+          tipoServico: tipoLido || '',
+          atividade: item.ATIVIDADE || '-',
+          status: item.STATUS || 'PENDENTE',
+          realizado: item.REALIZADO || '0%'
+        };
+      }).filter(item => String(item.atividade || '').trim() && item.atividade !== '-');
+    }
+
+    function montarResumoTiposServicoRelatorio(dados) {
+      const grupos = [];
+      const mapa = new Map();
+      let ultimoTipoServico = '';
+
+      (Array.isArray(dados) ? dados : []).forEach(item => {
+        const tipoLido = item['TIPO DE SERVIÇO'] || item.TIPO_SERVICO || item['TIPO DE SERVICO'] || item.SERVICO || item['SERVIÇO'] || '';
+        if (String(tipoLido).trim()) ultimoTipoServico = String(tipoLido).trim();
+
+        const atividade = item.ATIVIDADE || item['DESCRIÇÃO'] || item.DESCRICAO || '';
+        if (!String(atividade).trim()) return;
+
+        const tipoServico = ultimoTipoServico || 'SEM TIPO DE SERVIÇO';
+        if (!mapa.has(tipoServico)) {
+          const grupo = {
+            tipoServico,
+            totalAtividades: 0,
+            atividadesConcluidas: 0,
+            somaRealizado: 0,
+            somaPeso: 0,
+            somaRealizadoPeso: 0
+          };
+          mapa.set(tipoServico, grupo);
+          grupos.push(grupo);
+        }
+
+        const grupo = mapa.get(tipoServico);
+        const realizado = Math.max(0, Math.min(100, numero(item.REALIZADO || item['REALIZADO %'] || item['% REALIZADO'] || 0)));
+        const peso = Math.max(0, numero(item.PESO || item.PESO_PERCENTUAL || item['PESO %'] || 0));
+        const status = normalizar(item.STATUS || item['SITUAÇÃO'] || item.SITUACAO || '');
+
+        grupo.totalAtividades += 1;
+        grupo.somaRealizado += realizado;
+        if (peso > 0) {
+          grupo.somaPeso += peso;
+          grupo.somaRealizadoPeso += realizado * peso;
+        }
+        if (realizado >= 100 || status === 'CONCLUIDO' || status === 'CONCLUÍDO') {
+          grupo.atividadesConcluidas += 1;
+        }
+      });
+
+      return grupos.map(grupo => {
+        const percentual = grupo.somaPeso > 0
+          ? Math.round(grupo.somaRealizadoPeso / grupo.somaPeso)
+          : Math.round(grupo.somaRealizado / Math.max(1, grupo.totalAtividades));
+
+        return {
+          tipoServico: grupo.tipoServico,
+          totalAtividades: grupo.totalAtividades,
+          atividadesConcluidas: grupo.atividadesConcluidas,
+          percentualConclusao: Math.max(0, Math.min(100, percentual))
+        };
+      });
+    }
+
+    function buscarPrimeiroCampo(dados, campos) {
+      for (const item of dados) {
+        for (const campo of campos) {
+          if (item[campo] && String(item[campo]).trim()) return item[campo];
+        }
+      }
+      return '';
+    }
+
+    function buscarEmpresaRelatorio(dados) {
+      for (const item of dados || []) {
+        const empresa = item.EMPRESA || item.Empresa || item.empresa || item.NOME_EMPRESA || item['NOME DA EMPRESA'];
+        if (empresa && String(empresa).trim()) return empresa;
+      }
+
+      try {
+        const matriz = JSON.parse(localStorage.getItem('matrizCronogramaOnline') || '[]');
+        if (Array.isArray(matriz)) {
+          for (const linha of matriz) {
+            if (!Array.isArray(linha)) continue;
+            for (let i = 0; i < linha.length; i++) {
+              const celula = normalizar(linha[i]);
+              if (celula === 'EMPRESA' || celula === 'EMPRESA:' || celula.includes('EMPRESA')) {
+                for (let j = i + 1; j < linha.length; j++) {
+                  if (linha[j] && String(linha[j]).trim()) return linha[j];
+                }
+              }
+            }
+          }
+        }
+      } catch (erro) {}
+
+      try {
+        const resumo = JSON.parse(localStorage.getItem('resumoCronogramaDashboard') || '{}');
+        const empresa = resumo.empresa || resumo.EMPRESA || resumo.nomeEmpresa;
+        if (empresa && String(empresa).trim()) return empresa;
+      } catch (erro) {}
+
+      return '';
+    }
+
+    atualizarRelogio();
+    setInterval(atualizarRelogio, 1000);
+    aplicarRodapeConfiguracoes();
+
+    // Compatibilidade: mantém os últimos dados locais enquanto a conexão online é inicializada.
+    try {
+      const dadosCompatibilidadeDashboard = JSON.parse(localStorage.getItem('dadosCronograma') || '[]');
+      if (Array.isArray(dadosCompatibilidadeDashboard) && dadosCompatibilidadeDashboard.length) {
+        document.getElementById('baseDados').textContent = 'LOCAL';
+        montarIndicadores(dadosCompatibilidadeDashboard);
+      }
+    } catch (erro) {
+      console.error('Erro ao restaurar dados locais do dashboard:', erro);
+    }
+  </script>
+
+  <script>
+    // Integração compartilhada: Dashboard e Gantt utilizam a URL configurada no módulo Cronograma.
+    const INTEGRA_CHAVE_WEBAPP_URL = 'integra_config_webapp_url_cronograma';
+    const INTEGRA_CHAVE_ABA_ATIVA = 'integra_aba_cronograma_ativa';
+
+    function obterUrlWebAppCronograma() {
+      return String(localStorage.getItem(INTEGRA_CHAVE_WEBAPP_URL) || '').trim();
+    }
+
+    function obterAbaDosDadosRecebidos() {
+      var abaRecebida = '';
+
+      try {
+        var resumo = JSON.parse(localStorage.getItem('resumoCronogramaDashboard') || '{}');
+        abaRecebida = String(resumo.obra || resumo.OBRA || resumo.nomeObra || '').trim();
+      } catch (erro) {}
+
+      if (!abaRecebida) {
+        try {
+          var dados = JSON.parse(localStorage.getItem('dadosCronograma') || '[]');
+          if (Array.isArray(dados) && dados.length) {
+            abaRecebida = String(dados[0].OBRA || dados[0].Obra || dados[0].obra || '').trim();
+          }
+        } catch (erro) {}
+      }
+
+      return abaRecebida;
+    }
+
+    function obterAbaAtivaCompartilhada() {
+      var abaSalvaAnterior = String(localStorage.getItem(INTEGRA_CHAVE_ABA_ATIVA) || '').trim();
+      var abaRecebida = obterAbaDosDadosRecebidos();
+
+      /*
+        Quando o Cronograma já carregou outra obra, os dados atuais devem ter
+        prioridade sobre uma seleção antiga guardada pelo Dashboard.
+        Isso evita abrir novamente a última aba visualizada no Dashboard.
+      */
+      var veioDoCronograma = String(document.referrer || '').toLowerCase().includes('/cronograma/');
+      var abaAtiva = veioDoCronograma
+        ? (abaRecebida || abaSalvaAnterior)
+        : (abaRecebida && abaRecebida !== abaSalvaAnterior ? abaRecebida : (abaSalvaAnterior || abaRecebida));
+
+      if (abaAtiva) {
+        localStorage.setItem(INTEGRA_CHAVE_ABA_ATIVA, abaAtiva);
+      }
+
+      return abaAtiva;
+    }
+
+    function informarConfiguracaoCronograma() {
+      var select = document.getElementById('selectAbaDashboard');
+      var status = document.getElementById('statusOnlineDashboard');
+      if (select) {
+        select.disabled = true;
+        select.innerHTML = '<option value="">Configure a conexão no Cronograma</option>';
+      }
+      if (status) {
+        status.className = 'online-status erro';
+        status.textContent = 'Cadastre primeiro a conexão online no módulo Cronograma.';
+      }
+    }
+
+    window.carregarListaAbasDashboard = async function() {
+      var select = document.getElementById('selectAbaDashboard');
+      var status = document.getElementById('statusOnlineDashboard');
+      var urlWebApp = obterUrlWebAppCronograma();
+      if (!select) return;
+
+      if (!urlWebApp) {
+        informarConfiguracaoCronograma();
+        return;
+      }
+
+      select.disabled = false;
+      select.style.pointerEvents = 'auto';
+      select.innerHTML = '<option value="">Carregando abas...</option>';
+      if (status) {
+        status.className = 'online-status';
+        status.textContent = 'Conectando à planilha configurada no Cronograma...';
+      }
+
+      try {
+        var resposta = await fetch(urlWebApp + '?action=listSheets&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+        if (!resposta.ok) throw new Error('Falha HTTP ' + resposta.status + ' ao consultar as abas.');
+        var resultado = JSON.parse(await resposta.text());
+        var abas = [];
+
+        if (Array.isArray(resultado)) abas = resultado;
+        else if (Array.isArray(resultado.abas)) abas = resultado.abas;
+        else if (Array.isArray(resultado.sheets)) abas = resultado.sheets;
+        else if (Array.isArray(resultado.planilhas)) abas = resultado.planilhas;
+        else if (Array.isArray(resultado.data)) abas = resultado.data;
+
+        abas = abas.map(function(item) {
+          if (typeof item === 'string') return item;
+          return item.name || item.nome || item.sheetName || item.titulo || '';
+        }).filter(function(item) { return String(item).trim(); });
+
+        select.innerHTML = '<option value="">Selecione a aba / obra</option>';
+
+        if (!abas.length) {
+          if (status) {
+            status.className = 'online-status erro';
+            status.textContent = 'Nenhuma aba foi retornada pela planilha configurada.';
+          }
+          return;
+        }
+
+        abas.forEach(function(aba) {
+          var option = document.createElement('option');
+          option.value = aba;
+          option.textContent = aba;
+          select.appendChild(option);
+        });
+
+        var abaAtiva = obterAbaAtivaCompartilhada();
+        if (abaAtiva && abas.includes(abaAtiva)) {
+          select.value = abaAtiva;
+        }
+
+        if (status) {
+          status.className = 'online-status ok';
+          status.textContent = 'Planilha online disponível.';
+        }
+      } catch (erro) {
+        console.error('Erro ao buscar abas online:', erro);
+        select.disabled = false;
+        select.innerHTML = '<option value="">Erro ao buscar abas</option>';
+        if (status) {
+          status.className = 'online-status erro';
+          status.textContent = 'Erro ao conectar à URL cadastrada no Cronograma.';
+        }
+      }
+    };
+
+    window.carregarDadosOnlineDashboard = async function(abaSolicitada) {
+      var select = document.getElementById('selectAbaDashboard');
+      var status = document.getElementById('statusOnlineDashboard');
+      var botao = document.getElementById('btnCarregarOnlineDashboard');
+      var urlWebApp = obterUrlWebAppCronograma();
+      var aba = String(abaSolicitada || (select ? select.value : '') || '').trim();
+
+      if (!urlWebApp) {
+        informarConfiguracaoCronograma();
+        return;
+      }
+
+      if (!aba) {
+        if (status) {
+          status.className = 'online-status erro';
+          status.textContent = 'Selecione uma aba antes de carregar.';
+        }
+        return;
+      }
+
+      if (botao) botao.disabled = true;
+      if (status) {
+        status.className = 'online-status';
+        status.textContent = 'Carregando dados online...';
+      }
+
+      try {
+        var resposta = await fetch(urlWebApp + '?sheetName=' + encodeURIComponent(aba) + '&t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+        if (!resposta.ok) throw new Error('Falha HTTP ' + resposta.status + ' ao carregar a aba.');
+        var resultado = JSON.parse(await resposta.text());
+        var matriz = resultado.dados || resultado.values || resultado.data || resultado.linhas || [];
+
+        if (!Array.isArray(matriz) || !matriz.length) throw new Error('A aba carregou vazia.');
+
+        var dadosConvertidos = converterMatrizOnlineDashboardFinal(matriz, aba);
+        if (!dadosConvertidos.length) throw new Error('Não encontrei as colunas ATIVIDADE, STATUS e REALIZADO.');
+
+        localStorage.setItem(INTEGRA_CHAVE_ABA_ATIVA, aba);
+        localStorage.setItem('dadosCronograma', JSON.stringify(dadosConvertidos));
+        localStorage.setItem('matrizCronogramaOnline', JSON.stringify(matriz));
+        localStorage.setItem('resumoCronogramaDashboard', JSON.stringify({
+          obra: aba,
+          origem: 'online',
+          urlConfiguradaNoCronograma: true,
+          atualizadoEm: new Date().toISOString()
+        }));
+
+        if (select) select.value = aba;
+        var base = document.getElementById('baseDados');
+        if (base) base.textContent = 'ONLINE';
+        if (typeof montarIndicadores === 'function') montarIndicadores(dadosConvertidos);
+
+        if (status) {
+          status.className = 'online-status ok';
+          status.textContent = 'Planilha online carregada com sucesso.';
+        }
+      } catch (erro) {
+        console.error('Erro ao carregar dados online:', erro);
+        if (status) {
+          status.className = 'online-status erro';
+          status.textContent = erro.message || 'Erro ao carregar dados online.';
+        }
+      } finally {
+        if (botao) botao.disabled = false;
+      }
+    };
+
+    function converterMatrizOnlineDashboardFinal(matrizOriginal, nomeObra) {
+      var matriz = matrizOriginal.map(function(linha) { return Array.isArray(linha) ? linha : [linha]; });
+      var headerIndex = matriz.findIndex(function(linha) {
+        var texto = linha.map(limparCampoOnlineDashboardFinal).join('|');
+        return texto.indexOf('ATIVIDADE') >= 0 && texto.indexOf('STATUS') >= 0 && texto.indexOf('REALIZADO') >= 0;
+      });
+      if (headerIndex < 0) return [];
+
+      var headers = matriz[headerIndex].map(limparCampoOnlineDashboardFinal);
+      function indice(nome) { return headers.findIndex(function(h) { return h === nome || h.indexOf(nome) >= 0; }); }
+
+      var iSetor = indice('SETOR');
+      var iLocal = indice('LOCAL');
+      var iTipo = headers.findIndex(function(h) { return h.indexOf('TIPO') >= 0 && h.indexOf('SERVICO') >= 0; });
+      var iAtividade = indice('ATIVIDADE');
+      var iDificuldade = indice('DIFICULDADE');
+      var iInicio = indice('INICIO');
+      var iFim = indice('FIM');
+      var iStatus = indice('STATUS');
+      var iRealizado = indice('REALIZADO');
+      var iPeso = indice('PESO');
+
+      return matriz.slice(headerIndex + 1).map(function(linha) {
+        return {
+          OBRA: nomeObra,
+          SETOR: linha[iSetor >= 0 ? iSetor : 0] || '',
+          LOCAL: linha[iLocal >= 0 ? iLocal : 1] || '',
+          'TIPO DE SERVIÇO': linha[iTipo >= 0 ? iTipo : 2] || '',
+          TIPO_SERVICO: linha[iTipo >= 0 ? iTipo : 2] || '',
+          ATIVIDADE: linha[iAtividade >= 0 ? iAtividade : 3] || '',
+          DIFICULDADE: linha[iDificuldade >= 0 ? iDificuldade : 4] || '',
+          INICIO: linha[iInicio >= 0 ? iInicio : 5] || '',
+          FIM: linha[iFim >= 0 ? iFim : 6] || '',
+          STATUS: linha[iStatus >= 0 ? iStatus : 7] || '',
+          REALIZADO: linha[iRealizado >= 0 ? iRealizado : 8] || '',
+          PESO: linha[iPeso >= 0 ? iPeso : 9] || ''
+        };
+      }).filter(function(item) { return String(item.ATIVIDADE || '').trim(); });
+    }
+
+    function limparCampoOnlineDashboardFinal(valor) {
+      return String(valor || '')
+        .trim()
+        .toUpperCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ')
+        .replace(/\s+/g, ' ');
+    }
+
+    window.addEventListener('DOMContentLoaded', async function() {
+      var select = document.getElementById('selectAbaDashboard');
+      if (select) {
+        select.disabled = false;
+        select.style.pointerEvents = 'auto';
+      }
+
+      if (!obterUrlWebAppCronograma()) {
+        informarConfiguracaoCronograma();
+        return;
+      }
+
+      await window.carregarListaAbasDashboard();
+
+      // Recebe automaticamente a aba atualmente aberta no Cronograma.
+      // Caso exista conflito, os dados atuais recebidos substituem a aba antiga do Dashboard.
+      var abaAtiva = obterAbaAtivaCompartilhada();
+      if (abaAtiva && select && select.value === abaAtiva) {
+        await window.carregarDadosOnlineDashboard(abaAtiva);
+      }
+    });
+  </script>
+</body>
+</html>

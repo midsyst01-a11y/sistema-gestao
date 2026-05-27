@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedido de Materiais | Integra Gestão de Campo</title>
+<style>
+:root{
+  --navy:#101b2b;
+  --navy-2:#17263a;
+  --orange:#ef681a;
+  --orange-strong:#c9510c;
+  --orange-soft:#fde8db;
+  --bg:#edf2f7;
+  --card:#fff;
+  --ink:#11233d;
+  --muted:#60718a;
+  --line:#dae2ed;
+  --soft:#f7f9fc;
+  --danger:#b91c1c;
+  --success:#0f766e;
+  --radius:11px;
+  --shadow:0 5px 18px rgba(15,23,42,.06);
+}
+*{box-sizing:border-box}
+html,body{height:100%; margin:0}
+body{
+  font-family:"Segoe UI",Arial,sans-serif;
+  color:var(--ink);
+  background:var(--bg);
+  overflow:hidden;
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.app{height:100vh; display:grid; grid-template-columns:238px minmax(0,1fr)}
+.sidebar{
+  height:100vh;
+  background:linear-gradient(180deg,var(--navy),#0b1320);
+  color:#fff; padding:22px 14px; display:flex; flex-direction:column;
+}
+.brand{padding:0 10px 18px; border-bottom:1px solid rgba(255,255,255,.12)}
+.brand .small{font-size:10px; letter-spacing:.22em; color:#aab6c9; font-weight:700}
+.brand h1{font-size:18px; line-height:1.2; margin:7px 0 0}
+.module{
+  margin:18px 10px 15px; width:max-content; border:1px solid rgba(239,104,26,.45);
+  background:rgba(239,104,26,.16); color:#ffb07e; border-radius:16px;
+  padding:6px 11px; font-size:10px; font-weight:700; letter-spacing:.06em;
+}
+.nav{display:flex; flex-direction:column; gap:7px}
+.nav a{
+  display:flex; align-items:center; gap:9px; text-decoration:none; color:#dce4ef;
+  font-size:13px; padding:11px 12px; border-radius:8px;
+}
+.nav a:hover{background:rgba(255,255,255,.08)}
+.nav a.active{background:var(--orange); color:#fff; font-weight:600}
+.sidebar-foot{margin-top:auto; padding:0 10px; color:#98a7ba; font-size:11px; line-height:1.55}
+
+.work{height:100vh; display:grid; grid-template-rows:62px minmax(0,1fr); min-width:0}
+.top{
+  height:62px; background:#fff; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between; padding:0 18px 0 22px;
+}
+.top h2{font-size:18px; margin:0}
+.top p{font-size:11px; color:var(--muted); margin:3px 0 0}
+.actions{display:flex; gap:8px; flex-wrap:wrap}
+.btn{
+  border:1px solid transparent; border-radius:7px; padding:9px 12px;
+  font-size:12px; font-weight:650; display:inline-flex; align-items:center; gap:6px;
+}
+.btn.primary{background:var(--orange); color:#fff}
+.btn.primary:hover{background:#dd5e15}
+.btn.light{background:#f3f6fa; border-color:#dce4ed; color:#23334a}
+.btn.light:hover{background:#eaf0f7}
+.btn.danger{color:var(--danger); background:#fff1f2; border-color:#fecdd3}
+.btn.small{padding:6px 9px; font-size:11px}
+
+.content{
+  min-width:0; min-height:0; height:100%; padding:13px;
+  display:grid; grid-template-columns:minmax(505px,47%) minmax(460px,1fr); gap:13px;
+  align-items:stretch;
+}
+.editor{
+  min-height:0; height:100%; overflow-y:auto; overflow-x:hidden; padding-right:5px;
+  scrollbar-width:thin;
+}
+.card{
+  background:var(--card); border:1px solid #e3e8f0; border-radius:var(--radius);
+  box-shadow:var(--shadow); margin-bottom:10px; overflow:hidden;
+}
+.card-head{
+  padding:10px 13px; border-bottom:1px solid #e7ecf3; background:#fbfcfe;
+  font-size:12px; font-weight:750; letter-spacing:.045em; text-transform:uppercase;
+}
+.card-head.split{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.output-toggle{
+  border:1px solid #d4ddea; background:#f3f6fa; color:#334155;
+  border-radius:999px; padding:6px 10px; font-size:10px; font-weight:700;
+  text-transform:none; letter-spacing:0; white-space:nowrap;
+}
+.output-toggle:hover{border-color:var(--orange)}
+.output-toggle.on{
+  background:#fff2e8; border-color:#f4ae80; color:var(--orange-strong);
+}
+.output-toggle.off{
+  background:#f1f5f9; border-color:#cbd5e1; color:#64748b;
+}
+.blank-list-box{
+  margin:10px 8px 0; padding:10px; border:1px solid #e1e8f1;
+  border-radius:8px; background:#fff;
+}
+.blank-list-controls{
+  display:grid; grid-template-columns:112px minmax(180px,1fr); gap:8px; align-items:end;
+}
+.blank-list-controls .blank-actions-row{
+  grid-column:1 / -1;
+}
+.blank-list-actions{
+  display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+}
+.blank-list-info{
+  font-size:10px; color:var(--muted); margin-top:7px; line-height:1.4;
+}
+.numbered-output{
+  margin-top:6mm;
+  width:100%;
+}
+.numbered-output-title{
+  background:var(--orange-soft); border-left:1.4mm solid var(--orange);
+  color:var(--orange-strong); padding:2.6mm 3mm; font-size:9px;
+  font-weight:750; letter-spacing:.06em; margin-bottom:2.5mm;
+}
+.numbered-line{
+  display:grid; grid-template-columns:10mm 1fr; align-items:end; gap:2mm;
+  min-height:7.2mm; font-size:8.8px; color:#334155;
+}
+.numbered-line span:first-child{text-align:center}
+.numbered-rule{border-bottom:1px solid #aeb9c8; height:5.3mm}
+.info-item.hidden-info{display:none!important}
+
+.card-body{padding:10px 12px}
+.grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 10px}
+.full{grid-column:1/-1}
+.field label{
+  display:block; font-size:10px; line-height:1; font-weight:700; color:var(--muted);
+  text-transform:uppercase; margin:0 0 5px;
+}
+.field input,.field select,.field textarea{
+  display:block; width:100%; border:1px solid #ccd7e5; background:#fff;
+  border-radius:7px; padding:8px 10px; color:var(--ink); font-size:13px;
+}
+.field input,.field select{height:39px}
+.field textarea{resize:vertical; line-height:1.42; min-height:56px}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none; border-color:var(--orange); box-shadow:0 0 0 3px rgba(239,104,26,.12);
+}
+.logo-line{
+  display:flex; align-items:center; gap:9px; padding:7px 8px;
+  border:1px dashed #cbd7e5; background:#fbfcff; border-radius:8px;
+}
+.logo-thumb{
+  display:none; width:116px; height:47px; object-fit:contain; background:white;
+  border:1px solid #e3e8f0; border-radius:5px; flex:none;
+}
+.logo-file{flex:1; min-width:0}
+.logo-file input{height:auto; font-size:11px; padding:5px}
+.hint{font-size:10px; color:var(--muted); margin:4px 0 0}
+#footerText{min-height:48px; max-height:65px}
+
+.item-form{
+  display:grid; grid-template-columns:72px 105px 116px minmax(150px,1fr);
+  gap:8px; padding:10px 12px 9px; background:var(--soft);
+  border-bottom:1px solid #e7ecf3; align-items:end;
+}
+.item-description{grid-column:1/-1}
+#itemDescription{
+  min-height:45px; max-height:120px; resize:none; overflow-y:hidden; line-height:1.4;
+}
+.item-actions{
+  padding:0 12px 9px; display:flex; gap:7px; background:var(--soft);
+  border-bottom:1px solid #e7ecf3;
+}
+.simple-list-box{
+  margin:9px 8px 0; padding:10px; border:1px dashed #d2dce8;
+  border-radius:8px; background:#fbfcfe;
+}
+.simple-list-title{
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  margin-bottom:7px;
+}
+.simple-list-title strong{
+  font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;
+}
+.simple-list-title span{
+  font-size:10px; color:var(--muted);
+}
+#simpleList{
+  min-height:80px; max-height:130px; resize:vertical; font-size:12px; line-height:1.45;
+}
+.simple-list-actions{
+  margin-top:8px; display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+}
+.list-result{
+  display:none; padding:7px 9px; border-radius:6px; font-size:11px; font-weight:600;
+}
+.list-result.ok{display:block; background:#ccfbf1; color:var(--success)}
+.list-result.err{display:block; background:#fee2e2; color:var(--danger)}
+
+.items-table-wrap{padding:7px 8px 9px; overflow-x:auto}
+.items-table{width:100%; border-collapse:collapse; font-size:11px; min-width:610px}
+.items-table th{
+  text-align:left; color:var(--muted); text-transform:uppercase; font-size:9px;
+  background:#f1f5f9; padding:7px 5px; white-space:nowrap;
+}
+.items-table td{padding:5px 4px; border-bottom:1px solid #edf2f7; vertical-align:top}
+.items-table .n{width:30px; text-align:center; padding-top:13px}
+.items-table .q{width:58px}
+.items-table .u{width:78px}
+.items-table .p{width:99px}
+.items-table .tools{white-space:nowrap; width:42px; text-align:center; padding-top:8px}
+.items-table .cell-input,
+.items-table .cell-select,
+.items-table .cell-textarea{
+  width:100%; border:1px solid transparent; background:transparent;
+  border-radius:6px; padding:6px 7px; font-size:11px; color:var(--ink);
+  transition:border-color .12s, background .12s;
+}
+.items-table .cell-input:focus,
+.items-table .cell-select:focus,
+.items-table .cell-textarea:focus{
+  outline:none; border-color:var(--orange); background:#fff;
+  box-shadow:0 0 0 2px rgba(239,104,26,.1);
+}
+.items-table .cell-textarea{
+  min-height:31px; max-height:82px; resize:none; overflow-y:hidden;
+  line-height:1.35;
+}
+.items-table .cell-select{height:31px; padding:4px 5px}
+.items-table .cell-number{text-align:center}
+.items-table tbody tr:hover{background:#fbfcff}
+.items-table tbody tr:hover .cell-input,
+.items-table tbody tr:hover .cell-select,
+.items-table tbody tr:hover .cell-textarea{border-color:#e2e8f0}
+.empty{text-align:center; color:#96a3b7; padding:17px 5px!important}
+
+#term{min-height:82px; max-height:82px; resize:none}
+.signature-buttons{display:flex; gap:7px; flex-wrap:wrap; margin-top:9px}
+.toggle{
+  flex:1 1 220px; padding:9px 10px; border-radius:7px; border:1px solid #d4ddea;
+  background:#f6f8fb; color:#334155; font-size:11px; font-weight:700; text-align:left;
+}
+.toggle:hover{border-color:var(--orange)}
+.toggle.on{background:var(--orange); border-color:var(--orange); color:#fff}
+.sign-fields{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:9px; margin-top:8px;
+  background:#fafcfe; border:1px solid #e4ebf3; border-radius:7px;
+}
+.sign-fields h4{
+  grid-column:1/-1; margin:0; font-size:10px; color:var(--orange-strong);
+  text-transform:uppercase; letter-spacing:.04em;
+}
+.import-area textarea{
+  min-height:115px; font-family:Consolas,"Courier New",monospace; font-size:11px;
+}
+.message{display:none; margin-top:8px; padding:8px 9px; font-size:11px; border-radius:6px}
+.message.ok{display:block; background:#ccfbf1; color:var(--success)}
+.message.err{display:block; background:#fee2e2; color:var(--danger)}
+
+.preview{
+  position:relative; min-height:0; height:100%; overflow:hidden; padding:8px;
+  display:flex; justify-content:center; align-items:flex-start;
+}
+.paper-stage{
+  position:relative; flex:none; display:block;
+  transition:width .12s ease, height .12s ease;
+}
+.paper{
+  width:210mm; min-height:297mm; background:#fff; box-shadow:0 5px 20px rgba(15,23,42,.12);
+  padding:14mm 13mm 14mm; display:flex; flex-direction:column; flex:none;
+  transform-origin:top left;
+}
+.paper-head{
+  min-height:20mm; display:grid; grid-template-columns:49mm 1fr; gap:8mm; align-items:end;
+  padding-bottom:1.2mm;
+}
+.paper-logo{display:none; max-width:46mm; max-height:20mm; object-fit:contain; align-self:end}
+.paper-title{text-align:right; padding-bottom:0}
+.paper-title h1{font-size:16px; letter-spacing:.04em; margin:0; color:#12233c; line-height:1}
+.company-stripe{
+  height:6mm; background:var(--orange); margin:0 0 7mm;
+  color:#fff; display:flex; justify-content:flex-end; align-items:center;
+  padding:0 3mm; font-size:8.2px; font-weight:650;
+}
+.paper-info{
+  display:grid; grid-template-columns:1fr 1fr; gap:5mm 16mm;
+  margin:0 3mm 8mm; font-size:9.4px;
+}
+.paper-info .wide{grid-column:1/-1}
+.paper-info strong{
+  display:block; color:#66778e; font-size:7.6px; text-transform:uppercase; margin-bottom:1.3mm;
+}
+.section-bar{
+  background:var(--orange-soft); border-left:1.4mm solid var(--orange);
+  color:var(--orange-strong); padding:2.6mm 3mm; font-size:9px; font-weight:750;
+  letter-spacing:.06em;
+}
+.doc-table{width:100%; border-collapse:collapse; table-layout:fixed; font-size:8.4px}
+.doc-table th{
+  background:#eef2f7; border:1px solid #d7e0ea; color:#40516b;
+  padding:2.2mm 1.5mm; text-transform:uppercase; font-size:7.2px; text-align:left;
+}
+.doc-table td{
+  border:1px solid #d7e0ea; padding:2.4mm 1.5mm; vertical-align:top;
+  overflow-wrap:anywhere; line-height:1.38;
+}
+.doc-table .col-item{width:8%; text-align:center}
+.doc-table .col-desc{width:34%}
+.doc-table .col-qtd{width:10%; text-align:center}
+.doc-table .col-unit{width:11%; text-align:center}
+.doc-table .col-priority{width:14%}
+.doc-table .col-note{width:23%}
+.doc-empty{padding:8mm!important; text-align:center; color:#95a4b8}
+.term-print{
+  width:100%;
+  max-width:100%;
+  margin:7mm 0 0 0;
+  padding:0;
+  font-size:10.4px;
+  line-height:1.64;
+  color:#11233d;
+  text-align:justify;
+  text-justify:inter-word;
+  white-space:pre-line;
+  overflow-wrap:break-word;
+  hyphens:auto;
+}
+.signatures-print{display:grid; gap:16mm; margin-top:14mm}
+.signature-print{text-align:center}
+.signature-line{height:14mm; border-bottom:1px solid #263549}
+.signature-label{font-size:8.5px; padding-top:2mm}
+.signature-name{font-size:8px; color:#5b6b81; white-space:pre-line; margin-top:1.5mm}
+.paper-footer{margin-top:auto; padding-top:10mm}
+.footer-stripe{height:1.2mm; background:var(--orange); margin-bottom:3mm}
+.footer-content{text-align:center; font-size:7.8px; color:#64748b; white-space:pre-wrap}
+
+@media(max-width:1220px){
+  .app{grid-template-columns:68px 1fr}
+  .brand .small,.brand h1,.module,.nav span,.sidebar-foot{display:none}
+  .nav a{justify-content:center}
+  .content{display:block; height:auto; overflow:visible}
+  .editor{height:auto; overflow:visible}
+  .preview{height:auto; overflow:visible; min-height:620px; margin-top:14px}
+}
+@media(max-width:680px){
+  .grid{grid-template-columns:1fr}
+  .item-form{grid-template-columns:66px 96px 108px minmax(120px,1fr)}
+}
+@media print{
+  body{overflow:visible; background:#fff}
+  .sidebar,.top,.editor{display:none!important}
+  .app,.work,.content,.preview,.paper-stage{display:block; height:auto!important; min-height:0!important; width:auto!important; margin:0; padding:0; overflow:visible!important}
+  .paper{box-shadow:none; margin:0; transform:none!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="small">INTEGRA</div><h1>Gestão de Campo</h1></div>
+    <div class="module">RELATÓRIOS</div>
+    <nav class="nav">
+      <a class="active" href="#"><b>▣</b><span>Documento Timbrado</span></a>
+      <a href="../relatorios.html"><b>←</b><span>Voltar aos Relatórios</span></a>
+      <a href="../../../menu.html"><b>⌂</b><span>Menu Principal</span></a>
+    </nav>
+    <div class="sidebar-foot">Submódulo editável<br>Pedido de Materiais</div>
+  </aside>
+
+  <div class="work">
+    <header class="top">
+      <div><h2>Pedido de Materiais</h2><p>Preenchimento e visualização do documento</p></div>
+      <div class="actions">
+        <label class="btn light" for="pdfImport">↥ Abrir PDF editável</label>
+        <input class="hidden" id="pdfImport" type="file" accept="application/pdf">
+        <button class="btn light" id="newDoc" type="button">⟲ Novo</button>
+        <button class="btn primary" id="exportPdf" type="button">↓ Exportar PDF</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="editor">
+        <div class="card">
+          <div class="card-head">Identificação do Documento</div>
+          <div class="card-body">
+            <div class="grid">
+              <div class="field full">
+                <label>Logotipo da empresa emissora</label>
+                <div class="logo-line">
+                  <img class="logo-thumb" id="logoThumb" alt="Logotipo">
+                  <div class="logo-file">
+                    <input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp">
+                    <div class="hint">A imagem será mantida proporcional, sem deformação.</div>
+                  </div>
+                  <button class="btn light small" id="removeLogo" type="button">Remover</button>
+                </div>
+              </div>
+              <div class="field full">
+                <label>Título do documento</label>
+                <input id="title" value="PEDIDO DE MATERIAIS">
+              </div>
+              <div class="field">
+                <label>Empresa emissora</label>
+                <input id="company" value="INTEGRA ENGENHARIA">
+              </div>
+              <div class="field">
+                <label>Local da obra</label>
+                <input id="site">
+              </div>
+              <div class="field">
+                <label>Data do pedido</label>
+                <input id="date" type="date">
+              </div>
+              <div class="field">
+                <label>Solicitante responsável</label>
+                <input id="requester">
+              </div>
+              <div class="field full">
+                <label>Texto do rodapé — será exibido em todas as páginas</label>
+                <textarea id="footerText" placeholder="Ex.: endereço da empresa, contato ou frase institucional."></textarea>
+              </div>
+              <div class="field full">
+                <label>Termo (opcional) — abaixo da tabela ou acima da lista numerada</label>
+                <textarea id="term" rows="4" placeholder="Digite o termo. Com tabela ativa, ficará abaixo dela; usando a lista numerada sem tabela, ficará acima da lista."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head split">
+            <span>Materiais Solicitados</span>
+            <button class="output-toggle on" id="toggleMaterialsOutput" type="button" title="Controla a exibição da tabela no documento e no PDF">
+              ✓ Tabela no documento
+            </button>
+          </div>
+          <div class="item-form">
+            <div class="field item-description">
+              <label>Descrição do material</label>
+              <textarea id="itemDescription" rows="1" placeholder="Ex.: Massa acrílica 3,6 kg"></textarea>
+            </div>
+            <div class="field">
+              <label>QTD.</label>
+              <input id="itemQuantity" placeholder="1">
+            </div>
+            <div class="field">
+              <label>Unidade</label>
+              <select id="itemUnit"></select>
+            </div>
+            <div class="field">
+              <label>Prioridade</label>
+              <select id="itemPriority"></select>
+            </div>
+            <div class="field">
+              <label>Observação</label>
+              <input id="itemNote" placeholder="Opcional">
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="btn primary small" id="saveItem" type="button">＋ Inserir item na tabela</button>
+            <button class="btn light small hidden" id="cancelEdit" type="button">Cancelar edição</button>
+          </div>
+
+          <div class="simple-list-box">
+            <div class="simple-list-title">
+              <strong>Inserir Lista Simples</strong>
+              <span>Um material por linha</span>
+            </div>
+            <div class="field">
+              <textarea id="simpleList" placeholder="Massa acrílica 3,6 kg&#10;Tinta acetinada branco gelo 18 L&#10;Pincel 2 polegadas&#10;Rolo antigota 19 cm"></textarea>
+            </div>
+            <div class="simple-list-actions">
+              <button class="btn primary small" id="addSimpleList" type="button">＋ Adicionar itens da lista</button>
+              <button class="btn light small" id="clearSimpleList" type="button">Limpar texto</button>
+              <div class="list-result" id="simpleListResult"></div>
+            </div>
+          </div>
+
+          <div class="blank-list-box">
+            <div class="simple-list-title">
+              <strong>Lista Numerada para Preenchimento Manual</strong>
+              <span>Opcional no documento</span>
+            </div>
+            <div class="blank-list-controls">
+              <div class="field">
+                <label>Qtd. de linhas</label>
+                <input id="blankListCount" type="number" min="1" max="100" placeholder="15">
+              </div>
+              <div class="field">
+                <label>Título da lista</label>
+                <input id="blankListTitle" value="LISTA PARA PREENCHIMENTO" placeholder="Ex.: CONFERÊNCIA DE MATERIAIS">
+              </div>
+              <div class="blank-list-actions blank-actions-row">
+                <button class="btn primary small" id="generateBlankList" type="button">＋ Gerar lista numerada</button>
+                <button class="btn light small hidden" id="removeBlankList" type="button">Remover lista</button>
+              </div>
+            </div>
+            <div class="blank-list-info" id="blankListInfo">
+              Informe a quantidade desejada para gerar linhas numeradas no documento, por exemplo: 15 linhas.
+            </div>
+          </div>
+
+          <div class="items-table-wrap">
+            <table class="items-table">
+              <thead><tr><th class="n">#</th><th>Descrição</th><th class="q">QTD.</th><th class="u">Unid.</th><th class="p">Prioridade</th><th>Observação</th><th class="tools">Excluir</th></tr></thead>
+              <tbody id="itemsEditor"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">Assinaturas Opcionais</div>
+          <div class="card-body">
+            <div class="hint" style="margin:0 0 8px">Ative somente as assinaturas que deverão aparecer no documento.</div>
+            <div class="signature-buttons" style="margin-top:0">
+              <button class="toggle" id="toggleCompanySign" type="button">＋ Inserir assinatura — Responsável pela Empresa</button>
+              <button class="toggle" id="toggleReceiverSign" type="button">＋ Inserir assinatura — Responsável pelo Recebimento do Material</button>
+            </div>
+            <div class="sign-fields hidden" id="companySignFields">
+              <h4>Responsável pela Empresa</h4>
+              <div class="field"><label>Nome</label><input id="companySignName"></div>
+              <div class="field"><label>Cargo / identificação</label><input id="companySignRole"></div>
+            </div>
+            <div class="sign-fields hidden" id="receiverSignFields">
+              <h4>Responsável pelo Recebimento do Material</h4>
+              <div class="field"><label>Nome</label><input id="receiverSignName"></div>
+              <div class="field"><label>Cargo / identificação</label><input id="receiverSignRole"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card import-area">
+          <div class="card-head">Preenchimento Automático por Texto</div>
+          <div class="card-body">
+            <div class="hint" style="margin:0 0 7px">Use: <b>CAMPO:: valor</b> e <b>ITEM:: descrição ;; quantidade ;; unidade ;; prioridade ;; observação</b></div>
+            <div class="field">
+              <textarea id="importText" placeholder="PEDIDO_MATERIAIS_V2&#10;EMPRESA:: INTEGRA ENGENHARIA&#10;LOCAL:: Rondonópolis/MT&#10;DATA:: 27/05/2026&#10;SOLICITANTE:: Marco Costa&#10;ITEM:: Massa acrílica 3,6 kg ;; 1 ;; BALDE ;; Normal ;;&#10;FIM_PEDIDO"></textarea>
+            </div>
+            <button class="btn primary small" id="fillText" type="button" style="margin-top:8px">Preencher automaticamente</button>
+            <div class="message" id="textMessage"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="preview" id="previewArea" title="Pré-visualização da folha A4 completa antes da exportação">
+        <div class="paper-stage" id="paperStage">
+        <article class="paper" id="paperPage">
+          <div class="paper-head">
+            <img class="paper-logo" id="paperLogo" alt="Logotipo">
+            <div class="paper-title"><h1 id="viewTitle">PEDIDO DE MATERIAIS</h1></div>
+          </div>
+          <div class="company-stripe"><span id="viewCompany">INTEGRA ENGENHARIA</span></div>
+          <div class="paper-info" id="paperInfoBlock">
+            <div class="info-item" id="viewSiteBlock"><strong>Local da obra</strong><span id="viewSite"></span></div>
+            <div class="info-item" id="viewDateBlock"><strong>Data do pedido</strong><span id="viewDate"></span></div>
+            <div class="wide info-item" id="viewRequesterBlock"><strong>Solicitante responsável</strong><span id="viewRequester"></span></div>
+          </div>
+
+          <div id="materialsOutputBlock">
+            <div class="section-bar">MATERIAIS SOLICITADOS</div>
+            <table class="doc-table">
+              <thead><tr>
+                <th class="col-item">Item</th><th class="col-desc">Descrição</th><th class="col-qtd">QTD.</th>
+                <th class="col-unit">Unid.</th><th class="col-priority">Prioridade</th><th class="col-note">Observação</th>
+              </tr></thead>
+              <tbody id="itemsPreview"></tbody>
+            </table>
+          </div>
+
+          <div class="term-print hidden" id="termPreview"></div>
+
+          <div class="numbered-output hidden" id="blankListPreview">
+            <div class="numbered-output-title" id="blankListPreviewTitle">LISTA PARA PREENCHIMENTO</div>
+            <div id="blankListPreviewRows"></div>
+          </div>
+          <div class="signatures-print hidden" id="signaturesPreview">
+            <div class="signature-print hidden" id="companySignaturePreview">
+              <div class="signature-line"></div>
+              <div class="signature-label">Responsável pela Empresa</div>
+              <div class="signature-name" id="companySignatureName"></div>
+            </div>
+            <div class="signature-print hidden" id="receiverSignaturePreview">
+              <div class="signature-line"></div>
+              <div class="signature-label">Responsável pelo Recebimento do Material</div>
+              <div class="signature-name" id="receiverSignatureName"></div>
+            </div>
+          </div>
+
+          <footer class="paper-footer">
+            <div class="footer-stripe"></div>
+            <div class="footer-content" id="viewFooter"></div>
+          </footer>
+        </article>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'integra_pedido_materiais_reconstruido_v2';
+  const VERSION = 'INTEGRA_PEDIDO_MATERIAIS_V2';
+  const units = ['UN','M','M²','M³','KG','L','CX','PCT','PAR','LATA','BALDE','SACO','ROLO','JOGO','PEÇA','OUTRO'];
+  const priorities = ['Normal','Urgente','Crítico'];
+  const $ = id => document.getElementById(id);
+  let editingIndex = -1;
+
+  const freshState = () => ({
+    version: VERSION,
+    title: 'PEDIDO DE MATERIAIS',
+    company: 'INTEGRA ENGENHARIA',
+    site: '',
+    date: new Date().toISOString().slice(0,10),
+    requester: '',
+    footerText: '',
+    logo: '',
+    includeMaterials: true,
+    blankList: { enabled:false, count:0, title:'LISTA PARA PREENCHIMENTO' },
+    items: [],
+    term: '',
+    signs: {
+      company: { enabled:false, name:'', role:'' },
+      receiver: { enabled:false, name:'', role:'' }
+    }
+  });
+
+  let state = freshState();
+
+  function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    })[char]);
+  }
+  function formatDate(value) {
+    if (!value) return '—';
+    const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
+  }
+
+  function normalizeTermText(value) {
+    return String(value || '')
+      .replace(/\r\n?/g, '\n')
+      .split(/\n\s*\n/)
+      .map(paragraph => paragraph
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim())
+      .filter(Boolean)
+      .join('\n\n');
+  }
+  function parseDate(value) {
+    const match = String(value || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    return match ? `${match[3]}-${match[2]}-${match[1]}` : value.trim();
+  }
+  function normalizeUnit(value) {
+    const unit = String(value || 'UN').trim().toUpperCase().replace('M2','M²').replace('M3','M³');
+    return units.includes(unit) ? unit : 'OUTRO';
+  }
+  function normalizePriority(value) {
+    const p = String(value || '').toLowerCase();
+    if (p.includes('crit') || p.includes('crít')) return 'Crítico';
+    if (p.includes('urg')) return 'Urgente';
+    return 'Normal';
+  }
+  function saveDraft() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (error) {}
+  }
+  function readFieldsIntoState() {
+    state.title = $('title').value.trim();
+    state.company = $('company').value.trim();
+    state.site = $('site').value.trim();
+    state.date = $('date').value;
+    state.requester = $('requester').value.trim();
+    state.footerText = $('footerText').value.trim();
+    state.term = $('term').value.trim();
+    state.signs.company.name = $('companySignName').value.trim();
+    state.signs.company.role = $('companySignRole').value.trim();
+    state.signs.receiver.name = $('receiverSignName').value.trim();
+    state.signs.receiver.role = $('receiverSignRole').value.trim();
+  }
+  function writeStateToFields() {
+    if (typeof state.includeMaterials !== 'boolean') state.includeMaterials = true;
+    if (!state.blankList || typeof state.blankList !== 'object') state.blankList = { enabled:false, count:0, title:'LISTA PARA PREENCHIMENTO' };
+    if (typeof state.blankList.enabled !== 'boolean') state.blankList.enabled = false;
+    state.blankList.count = Number.isInteger(Number(state.blankList.count)) ? Number(state.blankList.count) : 0;
+    state.blankList.title = String(state.blankList.title || 'LISTA PARA PREENCHIMENTO').trim() || 'LISTA PARA PREENCHIMENTO';
+    $('blankListCount').value = state.blankList.count > 0 ? state.blankList.count : '';
+    $('blankListTitle').value = state.blankList.title;
+    $('title').value = state.title || 'PEDIDO DE MATERIAIS';
+    $('company').value = state.company || 'INTEGRA ENGENHARIA';
+    $('site').value = state.site || '';
+    $('date').value = state.date || '';
+    $('requester').value = state.requester || '';
+    $('footerText').value = state.footerText || '';
+    $('term').value = state.term || '';
+    $('companySignName').value = state.signs.company.name || '';
+    $('companySignRole').value = state.signs.company.role || '';
+    $('receiverSignName').value = state.signs.receiver.name || '';
+    $('receiverSignRole').value = state.signs.receiver.role || '';
+    showLogo();
+    renderMaterialsOutputControl();
+    renderBlankListControl();
+    renderSignatureControls();
+    renderItemsEditor();
+    renderPreview();
+  }
+  function showLogo() {
+    const logo = state.logo;
+    for (const id of ['logoThumb','paperLogo']) {
+      const img = $(id);
+      if (logo) {
+        img.src = logo;
+        img.style.display = 'block';
+      } else {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+      }
+    }
+  }
+  async function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = event => {
+        const image = new Image();
+        image.onerror = reject;
+        image.onload = () => {
+          const maxWidth = 620, maxHeight = 230;
+          const ratio = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(image.width * ratio);
+          canvas.height = Math.round(image.height * ratio);
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        image.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function autoSizeDescription() {
+    const field = $('itemDescription');
+    field.style.height = 'auto';
+    const target = Math.min(field.scrollHeight, 120);
+    field.style.height = target + 'px';
+    field.style.overflowY = field.scrollHeight > 120 ? 'auto' : 'hidden';
+  }
+
+  function fitPreviewPage() {
+    const area = $('previewArea');
+    const stage = $('paperStage');
+    const page = $('paperPage');
+    if (!area || !stage || !page) return;
+
+    page.style.transform = 'none';
+    stage.style.width = 'auto';
+    stage.style.height = 'auto';
+
+    const pageWidth = page.offsetWidth;
+    const pageHeight = page.offsetHeight;
+    const availableWidth = Math.max(260, area.clientWidth - 16);
+    const availableHeight = Math.max(260, area.clientHeight - 16);
+
+    // Somente a prévia é dimensionada para caber inteira na coluna direita.
+    // O PDF exportado permanece em tamanho A4 real.
+    const scale = Math.min(1, availableWidth / pageWidth, availableHeight / pageHeight);
+
+    page.style.transform = `scale(${scale})`;
+    stage.style.width = `${Math.ceil(pageWidth * scale)}px`;
+    stage.style.height = `${Math.ceil(pageHeight * scale)}px`;
+  }
+  function clearItemForm() {
+    editingIndex = -1;
+    $('itemDescription').value = '';
+    $('itemQuantity').value = '';
+    $('itemUnit').value = 'UN';
+    $('itemPriority').value = 'Normal';
+    $('itemNote').value = '';
+    $('saveItem').textContent = '＋ Inserir item na tabela';
+    $('cancelEdit').classList.add('hidden');
+    autoSizeDescription();
+  }
+  function itemFromForm() {
+    return {
+      description: $('itemDescription').value.trim(),
+      quantity: $('itemQuantity').value.trim(),
+      unit: normalizeUnit($('itemUnit').value),
+      priority: normalizePriority($('itemPriority').value),
+      note: $('itemNote').value.trim()
+    };
+  }
+  function saveItem() {
+    const item = itemFromForm();
+    if (!item.description) {
+      alert('Informe a descrição do material.');
+      $('itemDescription').focus();
+      return;
+    }
+    if (editingIndex >= 0) state.items[editingIndex] = item;
+    else state.items.push(item);
+    clearItemForm();
+    renderItemsEditor();
+    renderPreview();
+    saveDraft();
+  }
+  function editItem(index) {
+    const item = state.items[index];
+    if (!item) return;
+    editingIndex = index;
+    $('itemDescription').value = item.description;
+    $('itemQuantity').value = item.quantity;
+    $('itemUnit').value = item.unit;
+    $('itemPriority').value = item.priority;
+    $('itemNote').value = item.note;
+    $('saveItem').textContent = '✓ Atualizar item';
+    $('cancelEdit').classList.remove('hidden');
+    autoSizeDescription();
+    $('itemDescription').focus();
+  }
+  function removeItem(index) {
+    state.items.splice(index, 1);
+    if (editingIndex === index) clearItemForm();
+    renderItemsEditor();
+    renderPreview();
+    saveDraft();
+  }
+  function renderItemsEditor() {
+    const target = $('itemsEditor');
+    if (!state.items.length) {
+      target.innerHTML = '<tr><td colspan="7" class="empty">Nenhum material inserido.</td></tr>';
+      return;
+    }
+    target.innerHTML = state.items.map((item,index) => `
+      <tr data-row="${index}">
+        <td class="n">${index + 1}</td>
+        <td>
+          <textarea class="cell-textarea" data-field="description" data-index="${index}" rows="1">${esc(item.description)}</textarea>
+        </td>
+        <td class="q">
+          <input class="cell-input cell-number" data-field="quantity" data-index="${index}" value="${esc(item.quantity)}" placeholder="—">
+        </td>
+        <td class="u">
+          <select class="cell-select" data-field="unit" data-index="${index}">
+            ${units.map(unit => `<option value="${unit}" ${unit === item.unit ? 'selected' : ''}>${unit}</option>`).join('')}
+          </select>
+        </td>
+        <td class="p">
+          <select class="cell-select" data-field="priority" data-index="${index}">
+            ${priorities.map(priority => `<option value="${priority}" ${priority === item.priority ? 'selected' : ''}>${priority}</option>`).join('')}
+          </select>
+        </td>
+        <td>
+          <textarea class="cell-textarea" data-field="note" data-index="${index}" rows="1" placeholder="Opcional">${esc(item.note)}</textarea>
+        </td>
+        <td class="tools">
+          <button type="button" class="btn danger small" data-remove="${index}" title="Excluir item">×</button>
+        </td>
+      </tr>`).join('');
+    resizeInlineTextareas();
+  }
+
+  function resizeInlineTextarea(field) {
+    if (!field) return;
+    field.style.height = 'auto';
+    field.style.height = Math.min(field.scrollHeight, 82) + 'px';
+    field.style.overflowY = field.scrollHeight > 82 ? 'auto' : 'hidden';
+  }
+
+  function resizeInlineTextareas() {
+    document.querySelectorAll('#itemsEditor .cell-textarea').forEach(resizeInlineTextarea);
+  }
+
+  function updateInlineItem(event) {
+    const field = event.target.closest('[data-field][data-index]');
+    if (!field) return;
+    const index = Number(field.dataset.index);
+    const key = field.dataset.field;
+    if (!state.items[index] || !key) return;
+
+    state.items[index][key] = field.value;
+    if (key === 'unit') state.items[index][key] = normalizeUnit(field.value);
+    if (key === 'priority') state.items[index][key] = normalizePriority(field.value);
+    if (field.classList.contains('cell-textarea')) resizeInlineTextarea(field);
+    renderPreview();
+    saveDraft();
+  }
+  function cleanSimpleListLine(line) {
+    return String(line || '')
+      .replace(/^\s*(?:[-•*–—]|\d+[.)-])\s*/, '')
+      .trim();
+  }
+  function addItemsFromSimpleList() {
+    const text = $('simpleList').value;
+    const result = $('simpleListResult');
+    const lines = text
+      .split(/\r?\n/)
+      .map(cleanSimpleListLine)
+      .filter(Boolean);
+
+    if (!lines.length) {
+      result.className = 'list-result err';
+      result.textContent = 'Cole ao menos um material, com um item por linha.';
+      return;
+    }
+
+    const newItems = lines.map(description => ({
+      description,
+      quantity: '',
+      unit: 'UN',
+      priority: 'Normal',
+      note: ''
+    }));
+
+    state.items.push(...newItems);
+    renderItemsEditor();
+    renderPreview();
+    saveDraft();
+
+    result.className = 'list-result ok';
+    result.textContent = `${newItems.length} item(ns) identificado(s) e adicionado(s). Edite quantidade, unidade e observação diretamente na tabela abaixo.`;
+    $('simpleList').value = '';
+  }
+  function clearSimpleListText() {
+    $('simpleList').value = '';
+    $('simpleListResult').className = 'list-result';
+    $('simpleListResult').textContent = '';
+  }
+
+  function renderMaterialsOutputControl() {
+    const visible = state.includeMaterials !== false;
+    const button = $('toggleMaterialsOutput');
+    if (!button) return;
+    button.classList.toggle('on', visible);
+    button.classList.toggle('off', !visible);
+    button.textContent = visible ? '✓ Tabela no documento' : '○ Tabela fora do documento';
+  }
+
+  function renderBlankListControl() {
+    const enabled = Boolean(state.blankList && state.blankList.enabled && state.blankList.count > 0);
+    const count = enabled ? state.blankList.count : 0;
+    $('removeBlankList').classList.toggle('hidden', !enabled);
+    const listTitle = String(state.blankList?.title || 'LISTA PARA PREENCHIMENTO').trim() || 'LISTA PARA PREENCHIMENTO';
+    $('blankListInfo').textContent = enabled
+      ? `Lista “${listTitle}” ativa no documento com ${count} linha(s) numerada(s).`
+      : 'Informe a quantidade desejada e personalize o título da lista, se necessário.';
+  }
+
+  function getBlankListTitle() {
+    return $('blankListTitle').value.trim() || 'LISTA PARA PREENCHIMENTO';
+  }
+
+  function generateBlankList() {
+    const count = Number($('blankListCount').value);
+    if (!Number.isInteger(count) || count < 1 || count > 100) {
+      alert('Informe uma quantidade válida entre 1 e 100 linhas.');
+      $('blankListCount').focus();
+      return;
+    }
+    state.blankList = { enabled:true, count, title:getBlankListTitle() };
+    $('blankListTitle').value = state.blankList.title;
+    renderBlankListControl();
+    renderPreview();
+    saveDraft();
+  }
+
+  function updateBlankListTitle() {
+    if (!state.blankList || typeof state.blankList !== 'object') {
+      state.blankList = { enabled:false, count:0, title:'LISTA PARA PREENCHIMENTO' };
+    }
+    state.blankList.title = getBlankListTitle();
+    renderPreview();
+    saveDraft();
+  }
+
+  function removeBlankList() {
+    const maintainedTitle = getBlankListTitle();
+    state.blankList = { enabled:false, count:0, title:maintainedTitle };
+    $('blankListCount').value = '';
+    renderBlankListControl();
+    renderPreview();
+    saveDraft();
+  }
+
+  function renderSignatureControls() {
+    const companyOn = state.signs.company.enabled;
+    const receiverOn = state.signs.receiver.enabled;
+    $('companySignFields').classList.toggle('hidden', !companyOn);
+    $('receiverSignFields').classList.toggle('hidden', !receiverOn);
+    $('toggleCompanySign').classList.toggle('on', companyOn);
+    $('toggleReceiverSign').classList.toggle('on', receiverOn);
+    $('toggleCompanySign').textContent = companyOn
+      ? '✓ Assinatura inserida — Responsável pela Empresa'
+      : '＋ Inserir assinatura — Responsável pela Empresa';
+    $('toggleReceiverSign').textContent = receiverOn
+      ? '✓ Assinatura inserida — Responsável pelo Recebimento do Material'
+      : '＋ Inserir assinatura — Responsável pelo Recebimento do Material';
+  }
+  function renderPreview() {
+    readFieldsIntoState();
+    $('viewTitle').textContent = state.title || 'PEDIDO DE MATERIAIS';
+    $('viewCompany').textContent = state.company || '';
+    $('viewFooter').textContent = state.footerText || '';
+
+    const infoValues = {
+      site: state.site.trim(),
+      date: state.date ? formatDate(state.date) : '',
+      requester: state.requester.trim()
+    };
+    $('viewSite').textContent = infoValues.site;
+    $('viewDate').textContent = infoValues.date;
+    $('viewRequester').textContent = infoValues.requester;
+    $('viewSiteBlock').classList.toggle('hidden-info', !infoValues.site);
+    $('viewDateBlock').classList.toggle('hidden-info', !infoValues.date);
+    $('viewRequesterBlock').classList.toggle('hidden-info', !infoValues.requester);
+    $('paperInfoBlock').classList.toggle('hidden', !infoValues.site && !infoValues.date && !infoValues.requester);
+
+    const showMaterialsTable = state.includeMaterials !== false;
+    $('materialsOutputBlock').classList.toggle('hidden', !showMaterialsTable);
+
+    if (state.items.length) {
+      $('itemsPreview').innerHTML = state.items.map((item,index) => `
+        <tr>
+          <td class="col-item">${index + 1}</td>
+          <td>${esc(item.description)}</td>
+          <td class="col-qtd">${esc(item.quantity || '—')}</td>
+          <td class="col-unit">${esc(item.unit)}</td>
+          <td>${esc(item.priority)}</td>
+          <td>${esc(item.note)}</td>
+        </tr>`).join('');
+    } else {
+      $('itemsPreview').innerHTML = '<tr><td class="doc-empty" colspan="6">Nenhum material informado.</td></tr>';
+    }
+
+    const blankListVisible = Boolean(state.blankList && state.blankList.enabled && state.blankList.count > 0);
+    const blankListTitle = String(state.blankList?.title || 'LISTA PARA PREENCHIMENTO').trim() || 'LISTA PARA PREENCHIMENTO';
+    $('blankListPreviewTitle').textContent = blankListTitle;
+    $('blankListPreview').classList.toggle('hidden', !blankListVisible);
+    $('blankListPreviewRows').innerHTML = blankListVisible
+      ? Array.from({length: state.blankList.count}, (_, index) =>
+          `<div class="numbered-line"><span>${index + 1}.</span><div class="numbered-rule"></div></div>`
+        ).join('')
+      : '';
+
+    const printableTerm = normalizeTermText(state.term);
+    $('termPreview').textContent = printableTerm;
+    $('termPreview').classList.toggle('hidden', !printableTerm);
+
+    const anySign = state.signs.company.enabled || state.signs.receiver.enabled;
+    $('signaturesPreview').classList.toggle('hidden', !anySign);
+    $('signaturesPreview').style.gridTemplateColumns =
+      state.signs.company.enabled && state.signs.receiver.enabled ? '1fr 1fr' : 'minmax(70mm,90mm)';
+    $('signaturesPreview').style.justifyContent = anySign && !(state.signs.company.enabled && state.signs.receiver.enabled) ? 'center' : 'normal';
+    $('companySignaturePreview').classList.toggle('hidden', !state.signs.company.enabled);
+    $('receiverSignaturePreview').classList.toggle('hidden', !state.signs.receiver.enabled);
+    $('companySignatureName').textContent = [state.signs.company.name,state.signs.company.role].filter(Boolean).join('\n');
+    $('receiverSignatureName').textContent = [state.signs.receiver.name,state.signs.receiver.role].filter(Boolean).join('\n');
+    saveDraft();
+    requestAnimationFrame(fitPreviewPage);
+  }
+
+  function parseText() {
+    const input = $('importText').value.trim();
+    const message = $('textMessage');
+    if (!input) {
+      message.className = 'message err';
+      message.textContent = 'Cole o texto antes de preencher.';
+      return;
+    }
+    const updated = structuredClone(state);
+    const parsedItems = [];
+    const map = {
+      TITULO:'title', EMPRESA:'company', LOCAL:'site', DATA:'date',
+      SOLICITANTE:'requester', RODAPE:'footerText', 'RODAPÉ':'footerText', TERMO:'term'
+    };
+    for (const rawLine of input.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line || /^PEDIDO_MATERIAIS_V\d+$/i.test(line) || /^FIM_PEDIDO$/i.test(line)) continue;
+      if (/^ITEM\s*::/i.test(line)) {
+        const parts = line.replace(/^ITEM\s*::/i,'').split(';;').map(v => v.trim());
+        if (parts[0]) parsedItems.push({
+          description:parts[0], quantity:parts[1] || '', unit:normalizeUnit(parts[2]),
+          priority:normalizePriority(parts[3]), note:parts[4] || ''
+        });
+        continue;
+      }
+      const cut = line.indexOf('::');
+      if (cut > 0) {
+        const key = line.slice(0,cut).trim().toUpperCase();
+        const value = line.slice(cut + 2).trim();
+        if (map[key]) updated[map[key]] = key === 'DATA' ? parseDate(value) : value;
+      }
+    }
+    if (parsedItems.length) updated.items = parsedItems;
+    state = updated;
+    writeStateToFields();
+    message.className = 'message ok';
+    message.textContent = `Preenchimento concluído. ${parsedItems.length} material(is) importado(s).`;
+  }
+
+  function utf8ToBase64(value) {
+    const bytes = new TextEncoder().encode(value);
+    let binary = '';
+    bytes.forEach(byte => binary += String.fromCharCode(byte));
+    return btoa(binary);
+  }
+  function base64ToUtf8(value) {
+    const binary = atob(value);
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+  async function logoDimensionsForPDF() {
+    if (!state.logo) return null;
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(44 / img.width, 20 / img.height);
+        resolve({w:img.width * ratio, h:img.height * ratio});
+      };
+      img.onerror = () => resolve(null);
+      img.src = state.logo;
+    });
+  }
+  async function exportPDF() {
+    readFieldsIntoState();
+    saveDraft();
+    if (!window.jspdf?.jsPDF) {
+      alert('Biblioteca de PDF não carregada. Confirme a conexão com a internet.');
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:'mm', format:'a4', orientation:'portrait', compress:true});
+    const W=210, H=297, mx=13, cw=W-(mx*2);
+    const orange=[239,104,26], orangeSoft=[253,232,219], orangeText=[201,81,12];
+    const ink=[17,35,61], muted=[96,113,138], line=[218,226,237];
+    const logoSize = await logoDimensionsForPDF();
+
+    function headerFooter(pageNumber) {
+      const stripeY = 31.5;
+      if (state.logo && logoSize) {
+        const logoY = stripeY - logoSize.h - 1.2;
+        try { doc.addImage(state.logo,'PNG',mx,logoY,logoSize.w,logoSize.h,undefined,'FAST'); } catch(error) {}
+      }
+      doc.setTextColor(...ink);
+      doc.setFont('helvetica','bold'); doc.setFontSize(15);
+      doc.text(state.title || 'PEDIDO DE MATERIAIS', W-mx, stripeY - 1.8, {align:'right'});
+      doc.setFillColor(...orange); doc.rect(mx,stripeY,cw,5.8,'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(7.6);
+      doc.text(state.company || '', W-mx-3, stripeY + 3.8, {align:'right'});
+      doc.setFillColor(...orange); doc.rect(mx,H-17,cw,1.1,'F');
+      doc.setTextColor(...muted); doc.setFont('helvetica','normal'); doc.setFontSize(7.3);
+      const footer = doc.splitTextToSize(state.footerText || '', cw-18).slice(0,2);
+      if (footer.length) doc.text(footer,W/2,H-12.2,{align:'center'});
+      doc.text(`Página ${pageNumber}`,W-mx,H-7,{align:'right'});
+    }
+    function addDetails() {
+      const siteValue = String(state.site || '').trim();
+      const dateValue = state.date ? formatDate(state.date) : '';
+      const requesterValue = String(state.requester || '').trim();
+      doc.setTextColor(...muted); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+
+      if (siteValue) {
+        doc.text('LOCAL DA OBRA',mx+3,46);
+        doc.setTextColor(...ink); doc.setFont('helvetica','normal'); doc.setFontSize(8.7);
+        doc.text(siteValue,mx+3,51);
+        doc.setTextColor(...muted); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+      }
+      if (dateValue) {
+        doc.text('DATA DO PEDIDO',111,46);
+        doc.setTextColor(...ink); doc.setFont('helvetica','normal'); doc.setFontSize(8.7);
+        doc.text(dateValue,111,51);
+        doc.setTextColor(...muted); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+      }
+      if (requesterValue) {
+        doc.text('SOLICITANTE RESPONSÁVEL',mx+3,58);
+        doc.setTextColor(...ink); doc.setFont('helvetica','normal'); doc.setFontSize(8.7);
+        doc.text(requesterValue,mx+3,63);
+      }
+    }
+    function materialBar(y) {
+      doc.setFillColor(...orangeSoft); doc.rect(mx,y,cw,8,'F');
+      doc.setFillColor(...orange); doc.rect(mx,y,1.4,8,'F');
+      doc.setTextColor(...orangeText); doc.setFont('helvetica','bold'); doc.setFontSize(8.8);
+      doc.text('MATERIAIS SOLICITADOS',mx+4,y+5.2);
+    }
+    headerFooter(1);
+    addDetails();
+
+    let y = 70;
+    if (state.includeMaterials !== false) {
+      materialBar(69);
+
+      const tableRows = state.items.length ? state.items.map((item,index) => [
+        String(index+1), item.description, item.quantity || '—', item.unit, item.priority, item.note
+      ]) : [['—','Nenhum material informado.','','','','']];
+
+      doc.autoTable({
+        startY:77,
+        head:[['ITEM','DESCRIÇÃO','QTD.','UNID.','PRIORIDADE','OBSERVAÇÃO']],
+        body:tableRows,
+        margin:{top:47,right:mx,bottom:24,left:mx},
+        theme:'grid',
+        styles:{font:'helvetica',fontSize:8,cellPadding:2.35,textColor:ink,lineColor:line,lineWidth:.18,overflow:'linebreak',valign:'top'},
+        headStyles:{fillColor:[238,242,247],textColor:[64,81,107],fontStyle:'bold',fontSize:7},
+        columnStyles:{
+          0:{cellWidth:11,halign:'center'},1:{cellWidth:62},2:{cellWidth:17,halign:'center'},
+          3:{cellWidth:19,halign:'center'},4:{cellWidth:27},5:{cellWidth:48}
+        },
+        didDrawPage:data => {
+          if (data.pageNumber > 1) headerFooter(data.pageNumber);
+        }
+      });
+
+      y = doc.lastAutoTable.finalY + 6;
+    }
+    function ensureSpace(required) {
+      if (y + required > H - 23) {
+        doc.addPage();
+        headerFooter(doc.getNumberOfPages());
+        y = 48;
+      }
+    }
+
+    const printableTerm = normalizeTermText(state.term);
+    if (printableTerm) {
+      // Posição dinâmica do termo:
+      // com tabela ativa, fica logo abaixo da tabela;
+      // sem tabela, fica acima da lista numerada.
+      const paragraphs = printableTerm.split(/\n\s*\n/).filter(Boolean);
+      const fontSize = 9.6;
+      const lineHeight = 4.65;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...ink);
+
+      paragraphs.forEach((paragraph, paragraphIndex) => {
+        const lines = doc.splitTextToSize(paragraph, cw);
+        const blockHeight = (lines.length * lineHeight) + (paragraphIndex < paragraphs.length - 1 ? 3.2 : 0);
+        ensureSpace(blockHeight + 3);
+
+        lines.forEach((lineText, lineIndex) => {
+          const isLastLine = lineIndex === lines.length - 1;
+          doc.text(lineText, mx, y + lineHeight, {
+            align: isLastLine ? 'left' : 'justify',
+            maxWidth: cw
+          });
+          y += lineHeight;
+        });
+
+        if (paragraphIndex < paragraphs.length - 1) y += 3.2;
+      });
+
+      y += 4;
+    }
+
+    if (state.blankList && state.blankList.enabled && state.blankList.count > 0) {
+      const lineHeight = 7.1;
+      ensureSpace(12);
+      doc.setFillColor(...orangeSoft); doc.rect(mx,y,cw,8,'F');
+      doc.setFillColor(...orange); doc.rect(mx,y,1.4,8,'F');
+      doc.setTextColor(...orangeText); doc.setFont('helvetica','bold'); doc.setFontSize(8.8);
+      const blankListTitle = String(state.blankList.title || 'LISTA PARA PREENCHIMENTO').trim() || 'LISTA PARA PREENCHIMENTO';
+      const printableBlankListTitle = doc.splitTextToSize(blankListTitle, cw - 8)[0];
+      doc.text(printableBlankListTitle,mx+4,y+5.2);
+      y += 11;
+
+      for (let index = 1; index <= state.blankList.count; index++) {
+        ensureSpace(lineHeight + 2);
+        doc.setTextColor(...ink); doc.setFont('helvetica','normal'); doc.setFontSize(8.2);
+        doc.text(`${index}.`, mx + 3, y + 4.3, {align:'right'});
+        doc.setDrawColor(174,185,200); doc.setLineWidth(.2);
+        doc.line(mx + 10, y + 5, mx + cw, y + 5);
+        y += lineHeight;
+      }
+      y += 4;
+    }
+    const selectedSigns = [];
+    if (state.signs.company.enabled) selectedSigns.push({label:'Responsável pela Empresa', person:state.signs.company});
+    if (state.signs.receiver.enabled) selectedSigns.push({label:'Responsável pelo Recebimento do Material', person:state.signs.receiver});
+    if (selectedSigns.length) {
+      ensureSpace(42);
+      const gap = 18;
+      const colW = selectedSigns.length === 2 ? (cw-gap)/2 : 90;
+      selectedSigns.forEach((sign,index) => {
+        const x = selectedSigns.length === 2 ? mx + index*(colW+gap) : (W-colW)/2;
+        const lineY = y + 18;
+        doc.setDrawColor(38,53,73); doc.setLineWidth(.25); doc.line(x,lineY,x+colW,lineY);
+        doc.setTextColor(...ink); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+        doc.text(sign.label,x+colW/2,lineY+4,{align:'center'});
+        doc.setTextColor(...muted); doc.setFontSize(7.7);
+        const detail = [sign.person.name,sign.person.role].filter(Boolean);
+        if (detail.length) doc.text(detail,x+colW/2,lineY+8,{align:'center'});
+      });
+    }
+
+    const metadata = utf8ToBase64(JSON.stringify(state));
+    const chunks = metadata.match(/.{1,700}/g) || [];
+    doc.setPage(doc.getNumberOfPages());
+    doc.setTextColor(255,255,255); doc.setFontSize(0.2);
+    doc.text('PM_STATE_BEGIN',.5,.5);
+    chunks.forEach((chunk,index) => doc.text(`PM_${String(index).padStart(4,'0')}::${chunk}`,.5,.8+(index*.24)));
+    doc.text('PM_STATE_END',.5,1.2+(chunks.length*.24));
+
+    const fileName = (state.title || 'PEDIDO_DE_MATERIAIS')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'').toUpperCase();
+    doc.save(`${fileName}_${state.date || 'SEM_DATA'}.pdf`);
+  }
+  async function reopenPDF(file) {
+    if (!window.pdfjsLib) throw new Error('Leitor de PDF não carregado.');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await window.pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+    let complete = '';
+    for (let number=1; number<=pdf.numPages; number++) {
+      const page = await pdf.getPage(number);
+      const text = await page.getTextContent();
+      complete += text.items.map(item => item.str).join('\n') + '\n';
+    }
+    const pieces = [...complete.matchAll(/PM_(\d{4})::([A-Za-z0-9+/=]+)/g)]
+      .sort((a,b) => Number(a[1])-Number(b[1])).map(match => match[2]);
+    if (!pieces.length) throw new Error('Este PDF não contém dados editáveis deste submódulo.');
+    const restored = JSON.parse(base64ToUtf8(pieces.join('')));
+    if (restored.version !== VERSION) throw new Error('A versão dos dados internos do PDF não é compatível.');
+    state = restored;
+    writeStateToFields();
+    saveDraft();
+  }
+
+  function bind() {
+    window.addEventListener('resize', fitPreviewPage);
+    if (window.ResizeObserver) {
+      const previewObserver = new ResizeObserver(() => requestAnimationFrame(fitPreviewPage));
+      previewObserver.observe($('previewArea'));
+    }
+    ['title','company','site','date','requester','footerText','term','companySignName','companySignRole','receiverSignName','receiverSignRole']
+      .forEach(id => $(id).addEventListener('input', renderPreview));
+    $('logoFile').addEventListener('change', async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      state.logo = await compressImage(file);
+      showLogo(); renderPreview();
+      event.target.value = '';
+    });
+    $('removeLogo').addEventListener('click', () => { state.logo=''; showLogo(); renderPreview(); });
+    $('itemDescription').addEventListener('input', autoSizeDescription);
+    $('saveItem').addEventListener('click', saveItem);
+    $('cancelEdit').addEventListener('click', clearItemForm);
+    $('addSimpleList').addEventListener('click', addItemsFromSimpleList);
+    $('clearSimpleList').addEventListener('click', clearSimpleListText);
+    $('toggleMaterialsOutput').addEventListener('click', () => {
+      state.includeMaterials = !(state.includeMaterials !== false);
+      renderMaterialsOutputControl();
+      renderPreview();
+      saveDraft();
+    });
+    $('generateBlankList').addEventListener('click', generateBlankList);
+    $('removeBlankList').addEventListener('click', removeBlankList);
+    $('blankListTitle').addEventListener('input', updateBlankListTitle);
+    $('itemsEditor').addEventListener('input', updateInlineItem);
+    $('itemsEditor').addEventListener('change', updateInlineItem);
+    $('itemsEditor').addEventListener('click', event => {
+      const remove = event.target.closest('[data-remove]');
+      if (remove) removeItem(Number(remove.dataset.remove));
+    });
+    $('toggleCompanySign').addEventListener('click', () => {
+      state.signs.company.enabled = !state.signs.company.enabled;
+      renderSignatureControls(); renderPreview();
+    });
+    $('toggleReceiverSign').addEventListener('click', () => {
+      state.signs.receiver.enabled = !state.signs.receiver.enabled;
+      renderSignatureControls(); renderPreview();
+    });
+    $('fillText').addEventListener('click', parseText);
+    $('exportPdf').addEventListener('click', exportPDF);
+    $('pdfImport').addEventListener('change', async event => {
+      const file=event.target.files[0];
+      if (!file) return;
+      try {
+        await reopenPDF(file);
+        alert('PDF recuperado com sucesso para edição.');
+      } catch(error) {
+        alert(error.message || 'Não foi possível abrir o PDF.');
+      }
+      event.target.value='';
+    });
+    $('newDoc').addEventListener('click', () => {
+      if (!confirm('Deseja limpar os dados e criar um novo pedido?')) return;
+      state=freshState(); editingIndex=-1;
+      $('importText').value='';
+      $('textMessage').className='message';
+      clearSimpleListText();
+      clearItemForm(); writeStateToFields(); saveDraft();
+    });
+  }
+  function init() {
+    $('itemUnit').innerHTML = units.map(unit => `<option>${unit}</option>`).join('');
+    $('itemPriority').innerHTML = priorities.map(priority => `<option>${priority}</option>`).join('');
+    try {
+      const draft = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (draft && draft.version === VERSION) state = draft;
+    } catch(error) {}
+    clearItemForm();
+    bind();
+    writeStateToFields();
+  }
+  init();
+})();
+</script>
+</body>
+</html>
